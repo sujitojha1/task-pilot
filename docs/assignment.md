@@ -1,0 +1,58 @@
+# Assignment: Browser Comparison Agent + Replay Viewer
+
+> EAG V3 — Session 9 (Browser Agents & Autonomous Web)
+
+Build a browser-capable agent that completes a real comparison task on the web and produces a replay view of the run.
+
+The goal is to demonstrate work that Session 8's `web_search` + `fetch_url` cannot reliably do: interacting with dynamic pages, filters, dropdowns, tabs, search forms, product cards, pricing pages, or multi-step workflows. `web_search` and `fetch_url` are useful for static pages, but they fail on JavaScript-rendered pages, click-revealed widgets, multi-page flows, and sites where useful data appears only after filtering or sorting.
+
+## The task
+
+Students must choose **one comparison task**, such as:
+
+- Compare 3 laptops under ₹80,000.
+- Compare 5 AI coding tools by free plan and paid plan.
+- Compare top 3 Hugging Face text-generation models sorted by likes.
+- Compare 5 CNC/VMC training institutes in Bangalore.
+
+The agent must perform at least **three visible browser actions**, such as search, filter, sort, open product/detail pages, switch tabs, expand hidden content, or submit a form. **Passive scraping from search snippets is not accepted.**
+
+## Required output
+
+The final output must include a structured comparison table and a replay viewer/report showing:
+
+1. Original user goal
+2. Planner DAG
+3. Browser path chosen: extract / deterministic / a11y / vision / blocked
+4. Browser actions taken
+5. Screenshots or page-state logs
+6. Extracted data
+7. Final comparison table
+8. Turn count and cost summary
+
+## Constraints
+
+The orchestrator must not be modified. Any new behavior must plug in through the skill catalogue or as a Browser skill extension.
+
+## Reference pipeline
+
+```
+User Goal
+  → Planner
+  → Researcher          (find candidate URLs)
+  → Browser Skill       (interact with website)
+  → Cheapest correct path?
+      ├─ Extract        (static page)
+      ├─ Deterministic  (CSS selectors)
+      ├─ A11y           (accessibility tree)
+      ├─ Vision         (set-of-marks)
+      └─ Gateway Blocked (recover or report)
+  → Distiller
+  → QA / Critic
+  → Replay Viewer
+  → Final Comparison Table
+```
+
+## Submission
+
+YouTube demo, GitHub repo, replay trace/log, final comparison output, and a short architecture note.

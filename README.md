@@ -1,12 +1,12 @@
 # task-pilot
 
-> Give it a goal in plain language. It researches the live web to compare your options, decides with evidence, then publishes a fully structured plan — milestones, issues, board cards — through the browser. Every run ends with a replay of exactly what it did and what it cost.
+> Give it an idea in plain language. It verifies you're logged into GitHub, creates the repo, refines the idea against 3–5 similar projects found on the live web, derives formal requirements, and publishes traceable issues and milestones — all through the browser, with a replay of everything it did and what it cost.
 
 ---
 
 ## What is this?
 
-**task-pilot** is an agentic system that takes a high-level goal and turns it into a structured GitHub Project board — but it doesn't plan blind. Before writing a single ticket, it browses the real web to compare the candidate tools, libraries, or approaches the plan depends on. The comparison decides the stack; the stack shapes the milestones.
+**task-pilot** is an agentic system that bootstraps a raw idea into a complete, traceable GitHub project. It doesn't plan blind: before specifying anything, it researches similar repositories, compares them, and refines the objective with evidence. Every issue it opens traces back to a formal requirement; every requirement traces back to the refined idea.
 
 No manual ticket writing. No blank-page paralysis. No decisions without evidence.
 
@@ -14,11 +14,14 @@ No manual ticket writing. No blank-page paralysis. No decisions without evidence
 
 ## How a run works
 
-1. **Input** — You give the agent a goal in natural language
-2. **Compare** — The agent browses live, dynamic pages (search, filter, sort, open detail pages — real interactions, not passive scraping) to compare candidate tools/approaches, producing a **structured comparison table**
-3. **Plan** — The winning option feeds decomposition: milestones, then discrete issues with goal, acceptance criteria, subtasks, labels, priority
-4. **Publish** — The agent drives the actual GitHub UI to create the board, milestones, and issues, and place cards in columns
-5. **Replay** — Every run emits a replay view: original goal, planner DAG, browser path chosen per step (extract / deterministic / a11y / vision / blocked), actions taken, screenshots & page-state logs, extracted data, the comparison table, and turn count + cost summary
+1. **Verify** — Confirm the user is logged into GitHub (persistent browser profile). If not, stop and report cleanly — never act half-authenticated
+2. **Bootstrap** — Create the repository with an Apache-2.0 license and a README.md holding the initial idea
+3. **Research** — The **Researcher** searches GitHub for 3–5 similar repositories; the **Browser skill** opens each one (search, sort, open detail pages — visible actions, never passive scraping) and reads its README
+4. **Compare & refine** — The **Distiller** builds a **structured comparison table** of the similar repos; the idea's objective is broadened and refined against it, and the reference links are written into the README
+5. **Specify** — Write `requirements.md` following **IEEE 29148:2018**, with each requirement stated in **EARS** syntax and given a stable ID (REQ-001, …)
+6. **Publish** — Create issues one by one, each traced to its requirement IDs, then group them into logical milestones on the project board
+7. **Review** — The **QA/Critic** reviews `requirements.md` and the traceability chain: every requirement has an issue, every issue has a milestone
+8. **Replay** — Every run emits a replay view: original goal, planner DAG, browser path chosen per step (extract / deterministic / a11y / vision / blocked), actions taken, screenshots & page-state logs, extracted data, the comparison table, and turn count + cost summary
 
 ---
 
@@ -26,19 +29,22 @@ No manual ticket writing. No blank-page paralysis. No decisions without evidence
 
 | Concept | Description |
 |---|---|
-| **Comparison table** | The evidence artifact — candidates vs. criteria, gathered from live pages, embedded in the plan's epic issue |
-| **Milestone** | A high-level phase of work with a target date and success condition |
-| **Issue** | A single unit of work tied to a milestone, with goal + acceptance criteria + subtask checklist |
-| **Card** | The issue on the project board, in the right column (Todo / In Progress / Done) |
+| **Comparison table** | The evidence artifact — 3–5 similar repos vs. criteria, gathered by reading their READMEs on live pages |
+| **Requirement** | An EARS-syntax statement in `requirements.md` (IEEE 29148:2018) with a stable ID |
+| **Issue** | A single unit of work, traced to one or more requirement IDs |
+| **Milestone** | A logical grouping of issues with a success condition |
+| **Traceability** | The unbroken chain: idea → refined objective → requirement → issue → milestone |
 | **Replay** | The full trace of a run — what the agent saw, chose, clicked, extracted, and spent |
 
 ---
 
 ## Design principles
 
-- **Cheapest correct path** — the browser skill is a four-layer cascade: static extract → deterministic selectors → accessibility tree → vision (set-of-marks). Escalate only on failure; report cleanly when blocked
-- **Plain language in, structured plan out** — no templates to fill, no forms to click through
-- **Browser-native** — visible interactions on real dynamic pages, both for research (filter/sort/expand) and for publishing (GitHub UI, via a persistent logged-in profile)
+- **Verify before act** — login state is a precondition, checked first; a blocked gateway is reported, not worked around
+- **Cheapest correct path** — the browser skill is a four-layer cascade: static extract → deterministic selectors → accessibility tree → vision (set-of-marks). Escalate only on failure
+- **Evidence before specification** — the idea is refined against real, comparable projects before a single requirement is written
+- **Traceable by construction** — issues and milestones are generated *from* requirements, so the chain never needs reconstructing
+- **Browser-native** — visible interactions on real dynamic pages, both for research and for publishing through the actual GitHub UI
 - **Plugs in as a skill** — the orchestrator is untouched; task-pilot is a skill-catalogue entry plus prompts. No LangChain / LlamaIndex / CrewAI / AutoGen
 - **Transparent** — the replay shows every decision, every layer escalation, and the cost ledger
 
@@ -46,10 +52,13 @@ No manual ticket writing. No blank-page paralysis. No decisions without evidence
 
 ## Roadmap
 
-- [ ] Natural language goal intake
-- [ ] Live-web comparison phase with structured comparison table
-- [ ] Milestone decomposition + issue generation (goal, acceptance criteria, subtasks)
-- [ ] GitHub Project board creation and card placement via browser
+- [ ] GitHub login verification (persistent profile, clean abort when absent)
+- [ ] Repo bootstrap: Apache-2.0 license + initial README
+- [ ] Similar-repo research with structured comparison table and reference links
+- [ ] Idea refinement from comparison evidence
+- [ ] `requirements.md` generation (IEEE 29148:2018 + EARS, stable IDs)
+- [ ] Issue creation traced to requirements; milestone grouping
+- [ ] Traceability review pass (QA/Critic)
 - [ ] Replay viewer (DAG, layer choices, actions, screenshots, data, costs)
 - [ ] Later: Linear, Jira, Notion as publish targets
 
@@ -58,3 +67,5 @@ No manual ticket writing. No blank-page paralysis. No decisions without evidence
 ## Status
 
 Early stage. The architecture is defined; implementation is in progress.
+
+Built for the Session 9 assignment — see [docs/assignment.md](docs/assignment.md) for the full spec (deliverables, constraints, submission checklist).
