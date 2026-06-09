@@ -60,7 +60,6 @@ No manual ticket writing. No blank-page paralysis. No decisions without evidence
 - [ ] Issue creation traced to requirements; milestone grouping
 - [ ] Traceability review pass (QA/Critic)
 - [ ] Replay viewer (DAG, layer choices, actions, screenshots, data, costs)
-- [ ] Later: Linear, Jira, Notion as publish targets
 
 ---
 
