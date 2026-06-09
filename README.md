@@ -1,4 +1,4 @@
-# task-pilot
+# repo-genesis
 
 > Give it an idea in plain language. It verifies you're logged into GitHub, creates the repo, refines the idea against 3–5 similar projects found on the live web, derives formal requirements, and publishes traceable issues and milestones — all through the browser, with a replay of everything it did and what it cost.
 
@@ -6,7 +6,7 @@
 
 ## What is this?
 
-**task-pilot** is an agentic system that bootstraps a raw idea into a complete, traceable GitHub project. It doesn't plan blind: before specifying anything, it researches similar repositories, compares them, and refines the objective with evidence. Every issue it opens traces back to a formal requirement; every requirement traces back to the refined idea.
+**repo-genesis** is an agentic system that bootstraps a raw idea into a complete, traceable GitHub project. It doesn't plan blind: before specifying anything, it researches similar repositories, compares them, and refines the objective with evidence. Every issue it opens traces back to a formal requirement; every requirement traces back to the refined idea.
 
 No manual ticket writing. No blank-page paralysis. No decisions without evidence.
 
@@ -45,7 +45,7 @@ No manual ticket writing. No blank-page paralysis. No decisions without evidence
 - **Evidence before specification** — the idea is refined against real, comparable projects before a single requirement is written
 - **Traceable by construction** — issues and milestones are generated *from* requirements, so the chain never needs reconstructing
 - **Browser-native** — visible interactions on real dynamic pages, both for research and for publishing through the actual GitHub UI
-- **Plugs in as a skill** — the orchestrator is untouched; task-pilot is a skill-catalogue entry plus prompts. No LangChain / LlamaIndex / CrewAI / AutoGen
+- **Plugs in as a skill** — the orchestrator is untouched; repo-genesis is a skill-catalogue entry plus prompts. No LangChain / LlamaIndex / CrewAI / AutoGen
 - **Transparent** — the replay shows every decision, every layer escalation, and the cost ledger
 
 ---
