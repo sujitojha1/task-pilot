@@ -31,7 +31,21 @@ Available skills:
                      the page's own filter widgets and that is the
                      point of having Browser in the first place;
                      a pre-filtered URL would skip the interactive
-                     path the cascade is built for.
+                     path the cascade is built for. This applies
+                     to retail/shopping sites too: pass
+                     "https://www.flipkart.com", NOT
+                     "https://www.flipkart.com/search?q=laptops"
+                     or "https://www.amazon.in/s?k=laptops" —
+                     the search term belongs in `goal`.
+                     Keep `goal` to ONE short interaction
+                     sequence the skill can finish within its
+                     step budget: search → one filter → one sort
+                     → extract what the LISTING page shows
+                     (names, prices, headline specs). Do NOT ask
+                     Browser to open every item's detail page or
+                     extract exhaustive per-item specs — extract
+                     the visible listing and let a downstream
+                     distiller structure it.
                      Do NOT set metadata.force_path. Let the
                      cascade choose its own layer; the skill knows
                      how to escalate from extract → a11y → vision
