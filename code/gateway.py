@@ -21,7 +21,7 @@ from pathlib import Path
 
 import httpx
 
-GATEWAY_V9_DIR = Path(__file__).resolve().parents[2] / "llm_gatewayV9"
+GATEWAY_V9_DIR = Path(__file__).resolve().parents[1] / "gateway"
 GATEWAY_URL = "http://localhost:8109"
 
 
