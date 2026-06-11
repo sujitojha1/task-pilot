@@ -12,6 +12,51 @@ No manual ticket writing. No blank-page paralysis. No decisions without evidence
 
 ---
 
+## How to run
+
+Prerequisites: [uv](https://docs.astral.sh/uv/), Python 3.11+.
+
+**1. Install dependencies**
+
+```bash
+cd gateway && uv sync
+cd ../code && uv sync
+uv run playwright install chromium   # browsers for the Browser skill
+```
+
+**2. Configure environment**
+
+- `code/.env` — copy from `code/.env.example` and set `TAVILY_API_KEY` (web search).
+- `gateway/.env` — set at least one LLM provider key, e.g. `GEMINI_API_KEY` (also supported: `GROQ_API_KEY`, `CEREBRAS_API_KEY`, `NVIDIA_API_KEY`, `OPEN_ROUTER_API_KEY`, `GITHUB_ACCESS_TOKEN`, or a local `OLLAMA_URL`).
+
+**3. Start the Gateway V9**
+
+```bash
+cd gateway
+uv run python main.py   # serves on :8109 (override with GATEWAY_V9_PORT)
+```
+
+Verify it's up: `curl http://localhost:8109/v1/routers`.
+
+**4. Run a goal**
+
+```bash
+cd code
+uv run python flow.py "When was Claude Shannon born and what did he contribute to information theory?"
+```
+
+Resume an interrupted session with `uv run python flow.py --resume <session-id>`.
+
+**5. Inspect the run**
+
+- `uv run python replay.py` lists sessions; `uv run python replay.py <session-id>` replays one (DAG, per-node status, browser layer choices).
+- Raw artifacts live in `code/state/sessions/<session-id>/` — `graph.json`, `query.txt`, `nodes/n_*.json` (exact prompts and results), and `browser/` (per-turn screenshots when the Browser skill ran).
+- The gateway records every LLM call (tokens, latency, agent, session) in its SQLite ledger for cost accounting.
+
+`./run_demo.sh` walks the test suite plus five canonical queries (`./run_demo.sh browser` exercises the Browser skill end-to-end). Note its gateway-startup hint references an old `../llm_gatewayV9` path — the gateway lives in `gateway/` in this repo.
+
+---
+
 ## How a run works
 
 1. **Verify** — Confirm the user is logged into GitHub (persistent browser profile). If not, stop and report cleanly — never act half-authenticated
