@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How repo-genesis Works</title>
+
+  <!-- Google Fonts: Bricolage Grotesque · DM Sans · JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root {
+      --color-accent:       #2A7B9B;
+      --color-accent-hover: #1F6280;
+      --color-accent-light: #E4F2F7;
+      --color-accent-muted: #5A9DB8;
+    }
+  </style>
+
+  <script src="main.js" defer></script>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="nav-inner">
+      <span class="nav-title">How repo-genesis Works</span>
+      <div class="nav-dots" id="nav-dots" role="tablist">
+        <button class="nav-dot" data-target="module-1" data-tooltip="From Idea to Repo" role="tab" aria-label="Module 1: From Idea to Repo"></button>
+        <button class="nav-dot" data-target="module-2" data-tooltip="The Growing Graph" role="tab" aria-label="Module 2: The Growing Graph"></button>
+        <button class="nav-dot" data-target="module-3" data-tooltip="The Skill Catalogue" role="tab" aria-label="Module 3: The Skill Catalogue"></button>
+        <button class="nav-dot" data-target="module-4" data-tooltip="The Browser Cascade" role="tab" aria-label="Module 4: The Browser Cascade"></button>
+        <button class="nav-dot" data-target="module-5" data-tooltip="The Gateway" role="tab" aria-label="Module 5: The Gateway"></button>
+        <button class="nav-dot" data-target="module-6" data-tooltip="When Things Break" role="tab" aria-label="Module 6: When Things Break"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <!-- modules/*.html content is assembled here by build.sh -->
+<section class="module" id="module-1" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">From Idea to Repo</h1>
+      <p class="module-subtitle">You hand it one sentence. It hands you back a GitHub project with a repo, formal requirements, issues, and milestones — with receipts for everything.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: What the app is -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">One sentence in, a whole project out</h2>
+        <p>
+          <strong>repo-genesis</strong> is an
+          <span class="term" data-definition="An agent is a program that takes a goal written in plain language, figures out the steps to reach it, and carries them out for you — instead of you doing each step by hand.">agent</span>
+          you run from the
+          <span class="term" data-definition="The command line (or CLI) is the text window where you type commands instead of clicking buttons. When talking to an AI assistant you would say: 'run this from the command line.'">command line</span>.
+          You give it a raw idea, and it bootstraps a complete
+          <span class="term" data-definition="A repository (repo for short) is a project folder hosted on a site like GitHub — it holds the code, its full history, and the project's to-do lists.">GitHub repository</span>
+          around it: researched, specified, and broken into tracked work items.
+        </p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">YOU TYPE</span>
+            <pre><code>
+<span class="code-line">cd code</span>
+<span class="code-line">uv run python flow.py <span class="code-string">"When was Claude Shannon born and what did he contribute to information theory?"</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Go into the folder where the agent lives...</p>
+              <p class="tl">...and start it with a goal written exactly the way you would say it to a person. No forms, no special syntax — the sentence IS the input.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>
+          Think of it as a <strong>city planning office</strong>. You walk in with a rough sketch of a building. The office checks your permit to build (are you logged in?), surveys comparable buildings nearby, drafts formal blueprints, and issues numbered permits for each piece of work — and every permit cites the blueprint line that justifies it.
+        </p>
+      </section>
+
+      <!-- SCREEN 2: The eight-step run -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The eight steps of a run</h2>
+        <p>Every run walks the same arc — from checking your identity to publishing the plan and replaying what happened:</p>
+
+        <div class="step-cards stagger-children">
+          <div class="step-card animate-in">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Verify</strong>
+              <p>Confirm you are logged into GitHub. If not, stop cleanly — never act half-authenticated.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Bootstrap</strong>
+              <p>Create the repository with a license and a README holding the initial idea.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Research</strong>
+              <p>Search GitHub for 3–5 similar projects and read each one's README on the live page.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>Compare &amp; refine</strong>
+              <p>Build a comparison table of those projects and sharpen the idea against the evidence.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">5</div>
+            <div class="step-body">
+              <strong>Specify</strong>
+              <p>Write formal requirements, each with a stable ID like REQ-001 that can be cited later.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">6</div>
+            <div class="step-body">
+              <strong>Publish</strong>
+              <p>Open one GitHub issue per piece of work, each traced to its requirement, grouped into milestones.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">7</div>
+            <div class="step-body">
+              <strong>Review</strong>
+              <p>A QA critic checks the chain: every requirement has an issue, every issue has a milestone.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">8</div>
+            <div class="step-body">
+              <strong>Replay</strong>
+              <p>Emit a step-by-step record of everything it did, every page it visited, and what it cost.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Traceability is the whole point</strong>
+            <p>Every issue cites a requirement; every requirement cites the refined idea; the refined idea cites real projects it was compared against. Engineers call this a <span class="term" data-definition="A traceability chain links every piece of work back to the reason it exists — like a permit citing the blueprint line that requires it. If someone asks 'why are we building this?', the chain answers.">traceability chain</span> — it means no work item exists without a reason on record.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The two halves -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Two machines under the hood</h2>
+        <p>The codebase splits into two independent programs that talk over the network:</p>
+
+        <div class="icon-rows stagger-children">
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-1)">&#129504;</div>
+            <div>
+              <strong>The agent (<code>code/</code>)</strong>
+              <p>Plans the work, runs the skills, drives the browser, and remembers what it learned. This is the brain.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-2)">&#128682;</div>
+            <div>
+              <strong>The gateway (<code>gateway/</code>)</strong>
+              <p>One front door for every <span class="term" data-definition="An LLM (large language model) is the AI text engine — the thing that actually reads a prompt and writes an answer. ChatGPT and Gemini are LLMs.">LLM</span> call. It picks a provider, respects rate limits, and writes every call into a cost ledger.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-4)">&#128230;</div>
+            <div>
+              <strong>The paper trail (<code>code/state/sessions/</code>)</strong>
+              <p>Every run leaves artifacts on disk: the plan graph, each step's exact prompt and result, and browser screenshots.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>And here is the very first thing the agent does with your sentence — it writes it down, then schedules exactly one worker, the Planner:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/flow.py</span>
+            <pre><code>
+<span class="code-line">store.write_query(query)</span>
+<span class="code-line">graph = <span class="code-function">Graph</span>()</span>
+<span class="code-line">graph.add_node(<span class="code-string">"planner"</span>, inputs=[<span class="code-string">"USER_QUERY"</span>])</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Save your question to disk first, so the run can be resumed or replayed later.</p>
+              <p class="tl">Start a brand-new, empty plan.</p>
+              <p class="tl">Add one single task to it: hand the user's question to the Planner. Everything else that happens grows from this seed.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check your bearings</h2>
+
+        <div class="quiz-container" id="quiz-module1">
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly. The Verify step exists precisely so the agent never acts half-authenticated — it stops and reports cleanly before touching anything."
+               data-explanation-wrong="Not quite. Look back at step 1 of the run — the agent checks identity before it creates or changes anything at all.">
+            <h3 class="quiz-question">You start a run but forgot to log into GitHub. What happens?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It creates the repo anonymously and asks you to claim it later</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It stops at the very first step and reports the problem without doing anything</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It does the research first and only fails when it tries to publish issues</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right — the comparison table of similar real projects is the evidence the refined idea rests on. The agent researches before it specifies, so nothing is invented blind."
+               data-explanation-wrong="Think about steps 3 and 4: before writing any requirements, the agent goes out and reads similar projects so the plan rests on evidence, not guesswork.">
+            <h3 class="quiz-question">A colleague asks: &ldquo;So it just asks an AI to dream up some issues?&rdquo; What is the most accurate correction?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No — a human reviews and rewrites every issue before publishing</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No — the issues are copied from a fixed template that never changes</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No — it first researches 3–5 similar real projects and refines the idea against that evidence, and every issue traces to a formal requirement</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Yes. The agent (code/) is the brain that plans and acts; the gateway (gateway/) is the front door that every LLM call passes through, where providers, limits, and costs are managed."
+               data-explanation-wrong="Look back at the two-machines screen: one half plans and acts, the other half handles every single AI call on its behalf.">
+            <h3 class="quiz-question">The bill for AI usage seems high and you want to see which step is spending the most. Which half of the system would you look at?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The gateway — every LLM call goes through it and lands in its cost ledger</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The agent — it keeps a running total in its plan graph</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>GitHub — the costs are attached to each issue it creates</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
+<section class="module" id="module-2" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">The Growing Graph</h1>
+      <p class="module-subtitle">The plan is not written once and executed. It is a living map that draws new roads while the agent is already driving.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: The evidence board -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A detective&rsquo;s evidence board</h2>
+        <p>
+          Picture a detective&rsquo;s evidence board: photos pinned to a wall, strings connecting them. When a new lead comes in, the detective pins a new photo and runs new strings to it. The board <em>grows</em> as the case unfolds — nobody knew its final shape on day one.
+        </p>
+        <p>
+          That board is the agent&rsquo;s plan. Each pinned photo is a
+          <span class="term" data-definition="A node is one task on the plan — one unit of work like 'research this topic' or 'write the final answer'. The plan is a collection of nodes connected by arrows.">node</span>
+          (one task, run by one skill), and the strings are arrows saying &ldquo;this task feeds that one.&rdquo; Engineers call this shape a
+          <span class="term" data-definition="A DAG (directed acyclic graph) is a network of tasks connected by one-way arrows, with no loops — work always flows forward, never circles back on itself.">DAG</span>.
+          The
+          <span class="term" data-definition="The orchestrator is the coordinator program (here, code/flow.py). It doesn't do any task itself — it decides which tasks are ready, runs them, and grows the plan with the results.">orchestrator</span>
+          in <code>code/flow.py</code> is the detective: it never investigates anything itself, it just decides which leads are ready to chase and pins what comes back.
+        </p>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#129513;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Why a graph and not a checklist?</strong>
+            <p>A checklist runs one item at a time. A graph knows which tasks don&rsquo;t depend on each other — so three research tasks can run <em>at the same time</em>, and the comparison task waits for all three. Same work, much faster.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: The heartbeat -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The heartbeat: run what&rsquo;s ready, repeat</h2>
+        <p>The whole engine is one loop. Every beat, it asks: which tasks have all their inputs finished? Run those. Pin the results. Ask again.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/flow.py</span>
+            <pre><code>
+<span class="code-line"><span class="code-keyword">while</span> <span class="code-keyword">True</span>:</span>
+<span class="code-line">    ready = graph.ready_nodes()</span>
+<span class="code-line">    <span class="code-keyword">if</span> <span class="code-keyword">not</span> ready <span class="code-keyword">and</span> <span class="code-keyword">not</span> graph.has_running():</span>
+<span class="code-line">        <span class="code-keyword">break</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Keep going around this loop forever (until told to stop)...</p>
+              <p class="tl">Ask the board: which tasks have every upstream task finished?</p>
+              <p class="tl">If nothing is ready AND nothing is still running...</p>
+              <p class="tl">...the case is closed. Stop the loop.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>And here is the rule that decides &ldquo;ready&rdquo; — a task can start when every task feeding it is either done or deliberately skipped:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/flow.py</span>
+            <pre><code>
+<span class="code-line">preds = <span class="code-function">list</span>(self.g.predecessors(nid))</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">all</span>(self.g.nodes[p][<span class="code-string">"status"</span>] <span class="code-keyword">in</span> (<span class="code-string">"complete"</span>, <span class="code-string">"skipped"</span>) <span class="code-keyword">for</span> p <span class="code-keyword">in</span> preds):</span>
+<span class="code-line">    out.append(nid)</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Gather every task whose string points INTO this one — its suppliers.</p>
+              <p class="tl">If every single supplier has either finished or been waved off...</p>
+              <p class="tl">...this task goes on the &ldquo;run it now&rdquo; list.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: Five ways the board grows -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Five ways new pins land on the board</h2>
+        <p>The graph starts with a single node — the Planner — and grows through exactly five mechanisms:</p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#127793;</div>
+            <h4 class="pattern-title">The Planner&rsquo;s seed plan</h4>
+            <p class="pattern-desc">The Planner reads your goal and pins the first batch of tasks — the opening leads of the case.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#10133;</div>
+            <h4 class="pattern-title">Dynamic successors</h4>
+            <p class="pattern-desc">Any skill can finish its work and say &ldquo;now someone should do THIS next&rdquo; — pinning follow-up tasks itself.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">&#128279;</div>
+            <h4 class="pattern-title">Static successors</h4>
+            <p class="pattern-desc">Some pairs are wired in config: whenever the Coder finishes, a sandbox run is automatically pinned after it.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#128269;</div>
+            <h4 class="pattern-title">Critic auto-insertion</h4>
+            <p class="pattern-desc">Skills marked <code>critic: true</code> get a quality-check node spliced onto every outgoing string before anyone uses their output.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+            <div class="pattern-icon" style="background: var(--color-actor-5)">&#128736;&#65039;</div>
+            <h4 class="pattern-title">Recovery re-planning</h4>
+            <p class="pattern-desc">When a task fails, the Planner is called back with a failure report to draw a detour around the dead end.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Growth needs a leash</strong>
+            <p>A plan that can extend itself can also run away with itself. One line guards the whole system: <code>MAX_NODES = 60</code> — a hard cap so a looping Planner cannot grow the board forever. Whenever you build something self-extending, give it a leash first.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Group chat -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Listen in on one run</h2>
+        <p>If the skills had a group chat, a research run would read like this. Press <em>Next Message</em> to eavesdrop:</p>
+
+        <div class="chat-window animate-in" id="chat-module2">
+          <div class="chat-messages">
+            <div class="chat-message" data-msg="0" data-sender="planner" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">P</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">Planner</span>
+                <p>Goal just landed: &ldquo;find similar projects and compare them.&rdquo; I&rsquo;m pinning three research tasks — one per project — then a comparison, then a write-up.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="1" data-sender="researcher" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-2)">R</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-2)">Researcher &times;3</span>
+                <p>All three of us running in parallel. Searching, fetching pages, normalising what we find into clean text. Done — results pinned to the board.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="2" data-sender="distiller" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-3)">D</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-3)">Distiller</span>
+                <p>I waited until all three of you finished — the board wouldn&rsquo;t release me earlier. Extracting a structured comparison table now.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="3" data-sender="critic" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-4)">C</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-4)">Critic</span>
+                <p>Nobody touches that table until I check it against what the user actually asked. &hellip;Verdict: <strong>pass</strong>. Carry on.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="4" data-sender="formatter" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-5)">F</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-5)">Formatter</span>
+                <p>Thanks all. Composing the final answer the user will actually read — I&rsquo;m the last pin on the board.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="5" data-sender="planner" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">P</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">Planner</span>
+                <p>And if any of you had failed, I&rsquo;d have been called back with the failure report to draw a detour. That&rsquo;s the job.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-typing" id="chat-module2-typing" style="display:none">
+            <div class="chat-avatar" id="chat-module2-typing-avatar">?</div>
+            <div class="chat-typing-dots">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+            </div>
+          </div>
+
+          <div class="chat-controls">
+            <button class="btn chat-next-btn">Next Message</button>
+            <button class="btn chat-all-btn">Play All</button>
+            <button class="btn chat-reset-btn">Replay</button>
+            <span class="chat-progress"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Think like the orchestrator</h2>
+
+        <div class="quiz-container" id="quiz-module2">
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly — the ready rule holds it back until every supplier is complete or skipped. No timers, no guessing: the graph structure itself is the schedule."
+               data-explanation-wrong="Remember the ready rule: a task runs only when every task feeding it is finished or skipped. Nothing starts on a timer.">
+            <h3 class="quiz-question">A comparison task needs results from two research tasks. One finished, one is still running. What does the orchestrator do with the comparison task?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Starts it with the one result available and patches in the second later</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Leaves it pending — it only becomes &ldquo;ready&rdquo; when both suppliers are done</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Cancels the slow research task and proceeds with partial data</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right — MAX_NODES = 60 is the leash. The loop refuses to grow the board past the cap, no matter how enthusiastic the Planner gets."
+               data-explanation-wrong="Self-extending systems need a hard limit somewhere. Look for the one constant standing between an over-eager Planner and an infinite plan.">
+            <h3 class="quiz-question">A buggy prompt makes the Planner keep adding new tasks on every round, forever. What actually stops the run?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Nothing — it runs until you press Ctrl+C</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The Critic notices the loop and rejects the plan</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A hard cap of 60 nodes — the orchestrator refuses to grow the graph further</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Yes — because the Distiller is marked critic: true, the orchestrator splices a Critic onto every outgoing string. The Formatter's turn comes only if the verdict is pass."
+               data-explanation-wrong="The Distiller carries a special flag in its config. Recall what the orchestrator does to every outgoing connection from a critic: true skill.">
+            <h3 class="quiz-question">The Distiller finishes its table and the plan says the Formatter is next. What happens before the Formatter sees that table?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A Critic node is automatically inserted between them, and it must pass first</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Nothing — the Formatter runs immediately with the table as input</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The Planner is consulted to approve the hand-off</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
+<section class="module" id="module-3" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">The Skill Catalogue</h1>
+      <p class="module-subtitle">Every worker the agent can hire is defined by two small files — and adding a new one never touches the engine.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: A skill is two files -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A binder of laminated job cards</h2>
+        <p>
+          Imagine a staffing binder. Each page is one laminated job card: the role&rsquo;s name, what it does, which equipment it may use, and how much creative freedom it gets. To hire a new kind of worker, you add a page to the binder — you don&rsquo;t rebuild the office.
+        </p>
+        <p>
+          In this codebase, a skill is exactly that: one entry in
+          <code>code/agent_config.yaml</code> (the job card) plus one
+          <span class="term" data-definition="A prompt is the written instruction given to an AI model — the job briefing it reads before doing any work. Here each skill has its own prompt file, like prompts/critic.md.">prompt</span>
+          file in <code>code/prompts/</code> (the job briefing). There is <strong>no Python class per skill</strong> — the engine reads the binder and hires accordingly.
+        </p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/agent_config.yaml</span>
+            <pre><code>
+<span class="code-line"><span class="code-property">critic</span>:</span>
+<span class="code-line">  <span class="code-property">prompt</span>: prompts/critic.md</span>
+<span class="code-line">  <span class="code-property">temperature</span>: <span class="code-string">0.0</span>         <span class="code-comment"># pass/fail; we want determinism</span></span>
+<span class="code-line">  <span class="code-property">max_tokens</span>: <span class="code-string">500</span></span>
+<span class="code-line">  <span class="code-property">description</span>: Evaluates an upstream node's output; emits pass or fail with rationale.</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">A worker called &ldquo;critic&rdquo; exists.</p>
+              <p class="tl">Its job briefing lives in this text file.</p>
+              <p class="tl">Zero creative freedom — a judge should give the same verdict every time.</p>
+              <p class="tl">Keep its answers short (about 500 words&rsquo; worth).</p>
+              <p class="tl">Its job: check another worker&rsquo;s output and say pass or fail, with a reason.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: The cast -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Ten cards in the binder</h2>
+        <p>The catalogue ships with ten skills. Each one is a specialist, not a generalist:</p>
+
+        <div class="badge-list stagger-children">
+          <div class="badge-item animate-in">
+            <code class="badge-code">planner</code>
+            <span class="badge-desc">Breaks your goal into the task graph; redraws it when something fails</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">researcher</code>
+            <span class="badge-desc">Searches the web and fetches pages — the only skill allowed those tools</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">browser</code>
+            <span class="badge-desc">Drives a real web browser through a four-layer cascade (next module!)</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">retriever</code>
+            <span class="badge-desc">Searches the agent&rsquo;s own indexed knowledge before going to the web</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">distiller</code>
+            <span class="badge-desc">Extracts structured facts from raw text — always followed by a Critic check</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">summariser</code>
+            <span class="badge-desc">Condenses long content into short form</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">critic</code>
+            <span class="badge-desc">Judges another node&rsquo;s output: pass or fail, with rationale</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">coder</code>
+            <span class="badge-desc">Writes Python code — automatically followed by the sandbox runner</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">sandbox_executor</code>
+            <span class="badge-desc">Runs the Coder&rsquo;s code in a <span class="term" data-definition="A sandbox is a sealed play area for running untrusted code — whatever happens inside can't damage the rest of the system, like a padded test room.">sandbox</span> and reports what happened</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">formatter</code>
+            <span class="badge-desc">Writes the final answer the user reads — the conventional last node</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: How the binder is read -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The engine reads the binder once</h2>
+        <p>At startup, the registry loads every card. This is the entire &ldquo;hiring system&rdquo;:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/skills.py</span>
+            <pre><code>
+<span class="code-line"><span class="code-keyword">class</span> <span class="code-function">SkillRegistry</span>:</span>
+<span class="code-line">    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):</span>
+<span class="code-line">        cfg = yaml.safe_load(AGENT_CONFIG_PATH.read_text(encoding=<span class="code-string">"utf-8"</span>))</span>
+<span class="code-line">        self._skills: <span class="code-function">dict</span>[<span class="code-function">str</span>, Skill] = {n: <span class="code-function">Skill</span>(n, c) <span class="code-keyword">for</span> n, c <span class="code-keyword">in</span> cfg.items()}</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">The registry is the office&rsquo;s staffing desk.</p>
+              <p class="tl">When the office opens for the day...</p>
+              <p class="tl">...it reads the whole binder file from disk...</p>
+              <p class="tl">...and turns every page into a ready-to-hire worker, looked up by name.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>Three optional fields on a job card quietly drive the orchestrator behaviours you met in Module 2:</p>
+
+        <div class="badge-list stagger-children">
+          <div class="badge-item animate-in">
+            <code class="badge-code">tools_allowed</code>
+            <span class="badge-desc">Which equipment this worker may use (web search, page fetch, knowledge search) — empty means words only</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">internal_successors</code>
+            <span class="badge-desc">Who is ALWAYS hired right after this worker finishes (Coder &rarr; sandbox runner)</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">critic: true</code>
+            <span class="badge-desc">Every hand-off from this worker gets a quality inspector spliced in first (Distiller)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Where you plug in -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Where you plug in — and what you never touch</h2>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128268;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Extending = adding pages, never rewiring</strong>
+            <p>To add a brand-new capability: write one prompt file in <code>code/prompts/</code> and one entry in <code>code/agent_config.yaml</code>. The Planner learns it exists from its own prompt, and the orchestrator can run it immediately. That&rsquo;s the whole procedure.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-warning animate-in">
+          <div class="callout-icon">&#9940;</div>
+          <div class="callout-content">
+            <strong class="callout-title">The orchestrator is off-limits</strong>
+            <p>This project has a standing rule: new features plug in through the catalogue; <code>code/flow.py</code> stays unmodified. If a change you&rsquo;re planning requires editing the engine, that&rsquo;s the signal to redesign it as a skill instead. This keeps one battle-tested engine running many evolving skills.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">This pattern has a name</strong>
+            <p>Behaviour defined in data files instead of code is called <span class="term" data-definition="Configuration-driven (or data-driven) design means a program's behaviour is described in editable data files (like YAML) rather than hard-coded — so changing behaviour doesn't require changing or recompiling code.">configuration-driven design</span>. When you ask an AI assistant to &ldquo;make the new behaviour config-driven,&rdquo; this is exactly what you&rsquo;re asking for.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">You&rsquo;re the staffing manager now</h2>
+
+        <div class="quiz-container" id="quiz-module3">
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly — one new prompt file plus one new yaml entry. The engine never changes; that's the whole design philosophy of the catalogue."
+               data-explanation-wrong="Remember the standing rule: capabilities plug in through the binder (yaml + prompt), and the engine in flow.py stays untouched.">
+            <h3 class="quiz-question">You want the agent to gain a &ldquo;translator&rdquo; skill that renders the final answer in French. What do you change?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Write a Translator class in Python and register it inside flow.py</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Add a prompts/translator.md file and a translator: entry in agent_config.yaml — nothing else</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Fork the orchestrator so the French pipeline has its own engine</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Right — temperature lives on the job card. Dialing the Researcher from 0.7 toward 0.2 makes it more predictable, and it's a one-line yaml edit."
+               data-explanation-wrong="Creative freedom is a per-skill knob on its yaml entry — the same place the Critic is pinned to 0.0. No code edit needed.">
+            <h3 class="quiz-question">The Researcher&rsquo;s write-ups feel erratic — different phrasing and focus on every run. Where would you make it more consistent?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Lower its temperature value in agent_config.yaml</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Edit skills.py to add a consistency check after every researcher call</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Run the Researcher three times and keep the most common answer</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Yes — tools are granted per skill via tools_allowed. A skill with an empty list is words-only; it physically cannot reach the web no matter what its prompt says."
+               data-explanation-wrong="Equipment is listed on each job card. Check which yaml field names the tools a skill may call.">
+            <h3 class="quiz-question">Your new skill needs to look things up on the web, but every attempt fails. Its yaml entry has <code>tools_allowed: []</code>. What&rsquo;s going on?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The web search service is down — wait and retry</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The prompt file forgot to mention searching — rewrite the briefing</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The skill was never granted any tools — add web_search to its tools_allowed list</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
+<section class="module" id="module-4" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">The Browser Cascade</h1>
+      <p class="module-subtitle">Reading a web page can cost almost nothing — or a vision AI looking at screenshots. The skill always tries the cheap way first.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: Why a browser skill -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Getting answers out of a building</h2>
+        <p>
+          Suppose you need information from an office building. You&rsquo;d read the sign outside first. If that&rsquo;s not enough, follow the posted directions. Still stuck? Ask at the front desk, where the receptionist reads the building directory to you. Only as a last resort do you walk the halls yourself, looking around room by room.
+        </p>
+        <p>
+          The Browser skill (<code>code/browser/</code>) treats every web page the same way. Many modern pages are
+          <span class="term" data-definition="A JavaScript-rendered page is built by code running in your browser after the page loads — so a simple download of the page gets an empty shell, with the real content assembled only inside a live browser.">JavaScript-rendered</span>
+          or hide their answers behind filters and buttons, so the Researcher&rsquo;s simple page-fetch comes back empty. This skill escalates through four layers, stopping at the first one that succeeds:
+        </p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+            <div class="pattern-icon" style="background: var(--color-actor-5)">&#128203;</div>
+            <h4 class="pattern-title">1 &middot; Extract</h4>
+            <p class="pattern-desc">Download the page and pull out the readable text. No browser, no AI — nearly free.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#127922;</div>
+            <h4 class="pattern-title">2a &middot; Deterministic</h4>
+            <p class="pattern-desc">If the caller supplied exact click/fill instructions, replay them in a real browser. No guessing allowed.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#128483;&#65039;</div>
+            <h4 class="pattern-title">2b &middot; A11y</h4>
+            <p class="pattern-desc">A real browser reads the page&rsquo;s <span class="term" data-definition="The accessibility tree (a11y for short) is the text outline of a page that screen readers use — every button, link, and field with its label, no pictures needed.">accessibility tree</span> and a text-only AI decides what to click, step by step.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#128064;</div>
+            <h4 class="pattern-title">3 &middot; Vision</h4>
+            <p class="pattern-desc">Screenshot the page, draw numbered tags on every clickable element, and let a <span class="term" data-definition="A vision model is an AI that can look at images, not just read text — you show it a screenshot and it tells you what it sees and where to click.">vision model</span> literally look.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: Flow animation -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Watch one request climb the ladder</h2>
+        <p>The goal: &ldquo;filter laptops under &#8377;80,000 and extract the top 3.&rdquo; Step through what the cascade does:</p>
+
+        <div class="flow-animation animate-in" data-steps='[
+          {"highlight":"flow-actor-1","label":"The Planner hands over a URL and a goal that requires filtering a product list"},
+          {"highlight":"flow-actor-2","label":"Layer 1 downloads the page and extracts its text - cheap, instant, no AI","packet":true,"from":"actor-1","to":"actor-2"},
+          {"highlight":"flow-actor-2","label":"The goal contains the word filter - an interactive verb. Extraction alone can never satisfy it. Escalate."},
+          {"highlight":"flow-actor-3","label":"Layer 2b opens a real browser. A text AI reads the page outline and clicks the filter widgets, turn by turn","packet":true,"from":"actor-2","to":"actor-3"},
+          {"highlight":"flow-actor-3","label":"The filter widget is a custom slider the outline does not describe well. Twelve turns pass without success. Escalate."},
+          {"highlight":"flow-actor-4","label":"Layer 3 screenshots the page and draws numbered tags on every clickable element. The vision AI looks, drags the slider, reads the results","packet":true,"from":"actor-3","to":"actor-4"},
+          {"highlight":"flow-actor-4","label":"Success at layer 3. The answer travels back with a record of which layer won - that choice shows up later in the replay"}
+        ]'>
+          <div class="flow-actors">
+            <div class="flow-actor" id="flow-actor-1">
+              <div class="flow-actor-icon">&#127919;</div>
+              <span>Goal + URL</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-2">
+              <div class="flow-actor-icon">&#128203;</div>
+              <span>Extract</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-3">
+              <div class="flow-actor-icon">&#128483;&#65039;</div>
+              <span>A11y</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-4">
+              <div class="flow-actor-icon">&#128064;</div>
+              <span>Vision</span>
+            </div>
+          </div>
+
+          <div class="flow-packet" id="flow-packet"></div>
+
+          <div class="flow-step-label" id="flow-label">Click &ldquo;Next Step&rdquo; to begin</div>
+
+          <div class="flow-controls">
+            <button class="btn flow-next-btn">Next Step</button>
+            <button class="btn flow-reset-btn">Restart</button>
+            <span class="flow-progress"></span>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#128176;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Cheap first, smart later</strong>
+            <p>This is an <span class="term" data-definition="An escalation ladder tries the cheapest method first and only brings in heavier, costlier machinery when the simple way fails — like trying a restart before calling a technician.">escalation ladder</span> — a pattern worth requesting by name when you steer an AI assistant: &ldquo;try the cheap path first and escalate only on failure.&rdquo; Most pages never get past layer 1, so the average cost stays tiny.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The escalation rule, in code -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The rule that triggers escalation</h2>
+        <p>How does layer 1 know its answer is not good enough? Two checks — too little text, or a goal that demands interaction:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/browser/skill.py</span>
+            <pre><code>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">len</span>(content) &lt; <span class="code-string">200</span>:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span></span>
+<span class="code-line">interactive_verbs = (<span class="code-string">"click"</span>, <span class="code-string">"fill"</span>, <span class="code-string">"select"</span>, <span class="code-string">"type"</span>, <span class="code-string">"drag"</span>,</span>
+<span class="code-line">                     <span class="code-string">"filter"</span>, <span class="code-string">"sort"</span>, <span class="code-string">"submit"</span>, <span class="code-string">"navigate"</span>)</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">any</span>(v <span class="code-keyword">in</span> goal.lower() <span class="code-keyword">for</span> v <span class="code-keyword">in</span> interactive_verbs):</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span></span>
+<span class="code-line"><span class="code-keyword">return</span> <span class="code-keyword">True</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Got fewer than ~200 characters of text? That&rsquo;s a husk, not a page. Not useful.</p>
+              <p class="tl">Here is a list of action words...</p>
+              <p class="tl">...that all mean &ldquo;you must DO something on the page.&rdquo;</p>
+              <p class="tl">If the goal asks for any of them, reading alone can never succeed. Not useful.</p>
+              <p class="tl">Otherwise — the cheap layer&rsquo;s answer stands. Done.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-warning animate-in">
+          <div class="callout-icon">&#128679;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Blocked is a verdict, not a defeat</strong>
+            <p>If any layer finds a <span class="term" data-definition="A CAPTCHA is the 'prove you are human' test some sites show — distorted letters, image grids, or an 'I am not a robot' checkbox.">CAPTCHA</span> or a login wall, the skill does NOT keep climbing — clicking harder at a wall just wastes money. It returns immediately with the code <code>gateway_blocked</code>, and the Planner is recalled to route around the blocked site. Escalation fixes &ldquo;too hard&rdquo;; it cannot fix &ldquo;not allowed.&rdquo;</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Run the cascade in your head</h2>
+
+        <div class="quiz-container" id="quiz-module4">
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Right — a plain article page yields plenty of text at layer 1, and the goal has no action words. The browser and the AI never even start. Cheapest possible outcome."
+               data-explanation-wrong="Check both escalation triggers: is the extracted text long enough, and does the goal contain an action verb? A plain read of a text-rich page trips neither.">
+            <h3 class="quiz-question">Goal: &ldquo;read this news article and pull out the key dates.&rdquo; The page is an ordinary text article. Which layer produces the answer?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Layer 1 (extract) — long text, no action verbs, so the cascade stops immediately</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Layer 2b (a11y) — pulling out dates counts as interaction</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Layer 3 (vision) — dates need to be seen to be read reliably</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Exactly — 'sort' is on the interactive-verbs list, so layer 1 declares itself insufficient no matter how much text it extracted. Someone has to actually operate the page."
+               data-explanation-wrong="Re-read the escalation rule: one of the words in that goal appears verbatim in the interactive_verbs list, which forces escalation even when extraction returns lots of text.">
+            <h3 class="quiz-question">Goal: &ldquo;sort the table by price and grab the cheapest three.&rdquo; Layer 1 extracts 5,000 characters of page text. Why does the cascade still escalate?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>5,000 characters is over the limit, so the text is discarded</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Tables can never be extracted as text</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The goal contains &ldquo;sort&rdquo; — an action verb — and reading a page can never perform an action</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Yes — a CAPTCHA means blocked, and blocked is final for this site. The skill reports gateway_blocked at once, and the Planner reroutes — perhaps to a different source entirely."
+               data-explanation-wrong="Think about what escalation can and cannot fix. More capable layers solve harder pages — but a wall that says 'no robots' stays a wall at every layer.">
+            <h3 class="quiz-question">Halfway through, the page shows &ldquo;Let&rsquo;s confirm you are human.&rdquo; What does the skill do?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Escalates to vision — the vision model can solve the puzzle by looking at it</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Stops immediately with a gateway_blocked error so the Planner can route around the site</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Retries the same page every minute until the wall disappears</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
+<section class="module" id="module-5" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">The Gateway</h1>
+      <p class="module-subtitle">Seven AI providers, one front door. Every call gets routed, rate-limited, retried — and written into a ledger.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: One front door -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">An air traffic control tower</h2>
+        <p>
+          The agent never calls an AI
+          <span class="term" data-definition="A provider is a company or service that runs AI models you can call over the internet — Gemini, Groq, and Cerebras are providers. Each has its own pricing, speed limits, and strengths.">provider</span>
+          directly. Every request flies through the Gateway (<code>gateway/main.py</code>) — a control tower with seven runways: Gemini, Groq, Cerebras, NVIDIA, OpenRouter, GitHub Models, and a local
+          <span class="term" data-definition="Ollama runs AI models on your own computer instead of in the cloud — free and private, but limited by your hardware.">Ollama</span>.
+        </p>
+        <p>The tower&rsquo;s job, on every single call:</p>
+
+        <div class="icon-rows stagger-children">
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-2)">&#128739;&#65039;</div>
+            <div>
+              <strong>Assign a runway</strong>
+              <p>Pick a provider that has the needed capabilities (tools, vision, structured output) and free capacity right now.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-4)">&#9203;</div>
+            <div>
+              <strong>Respect the congestion rules</strong>
+              <p>Each provider has a <span class="term" data-definition="A rate limit is a cap on how often you may call a service — e.g. 15 requests per minute. Exceed it and the service starts refusing you, so well-behaved programs track it themselves.">rate limit</span>. The tower tracks calls per minute, per day, and <span class="term" data-definition="A token is the unit AI providers count and bill by — roughly three-quarters of a word. 'Hello there' is about 3 tokens.">tokens</span> spent, and never sends a plane to a full runway.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-5)">&#128257;</div>
+            <div>
+              <strong>Reroute on trouble</strong>
+              <p>Provider down or busy? The call falls through a <span class="term" data-definition="Failover means automatically switching to a backup when the first choice fails — like a generator kicking in during a power cut. A failover ladder is the ordered list of backups to try.">failover ladder</span> to the next one. The caller never notices.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-1)">&#128209;</div>
+            <div>
+              <strong>Log every landing</strong>
+              <p>Every call — tokens, latency, which skill made it, which session — lands in a <span class="term" data-definition="SQLite is a tiny database that lives in a single file on disk — no server to install. Perfect for a local ledger.">SQLite</span> ledger. Cost accounting comes free.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: Who flies where -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Who flies on which airline</h2>
+        <p>Each skill is pinned to a preferred provider in one tiny file — matching the job to the model&rsquo;s strengths:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — gateway/agent_routing.yaml</span>
+            <pre><code>
+<span class="code-line"><span class="code-property">planner</span>: gemini</span>
+<span class="code-line"><span class="code-property">researcher</span>: gemini</span>
+<span class="code-line"><span class="code-property">distiller</span>: gemini</span>
+<span class="code-line"><span class="code-property">summariser</span>: gemini</span>
+<span class="code-line"><span class="code-property">critic</span>: groq</span>
+<span class="code-line"><span class="code-property">formatter</span>: gemini</span>
+<span class="code-line"><span class="code-property">retriever</span>: github</span>
+<span class="code-line"><span class="code-property">sandbox_executor</span>: github</span>
+<span class="code-line"><span class="code-property">coder</span>: gemini</span>
+<span class="code-line"><span class="code-property">browser</span>: gemini</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">The Planner needs the strongest reasoning — give it Gemini.</p>
+              <p class="tl">The bulky reading-and-writing skills also go to Gemini, which handles very long documents comfortably.</p>
+              <p class="tl">The Critic only says pass or fail — send it to Groq, a small, fast, cheap worker.</p>
+              <p class="tl">Classifier-ish skills ride the free GitHub Models tier.</p>
+              <p class="tl">Changing any of this is a one-line edit. No code.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#128204;</div>
+          <div class="callout-content">
+            <strong class="callout-title">A pin is a preference, not a promise</strong>
+            <p>If a pinned provider is cooling down, the gateway waits briefly, then falls back through the normal ladder. The system degrades gracefully instead of refusing to fly.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The congestion rules in code -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">How a runway says &ldquo;not now&rdquo;</h2>
+        <p>Before any call, the router asks the provider&rsquo;s bookkeeping: can I use you right now? Three of its checks:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — gateway/router.py</span>
+            <pre><code>
+<span class="code-line">wait = limits[<span class="code-string">"cooldown"</span>] - (now - self.last_call)</span>
+<span class="code-line"><span class="code-keyword">if</span> wait &gt; <span class="code-string">0</span>:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span>, f<span class="code-string">"cooldown ({wait:.1f}s)"</span></span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">len</span>(self.calls_minute) &gt;= limits[<span class="code-string">"rpm"</span>]:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span>, <span class="code-string">"RPM limit"</span></span>
+<span class="code-line"><span class="code-keyword">if</span> self.calls_today &gt;= limits[<span class="code-string">"rpd"</span>]:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span>, <span class="code-string">"RPD limit"</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Has enough time passed since this provider&rsquo;s last call? Some need a short breather between requests.</p>
+              <p class="tl">If not — refuse, and say exactly how long the breather has left.</p>
+              <p class="tl">Already at the requests-per-minute ceiling? Refuse.</p>
+              <p class="tl">Already at the requests-per-day ceiling? Refuse.</p>
+              <p class="tl">Every refusal names its reason — so the router can report exactly why it skipped a provider.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>Beyond chat, the same front door serves the rest of the system:</p>
+
+        <div class="badge-list stagger-children">
+          <div class="badge-item animate-in">
+            <code class="badge-code">/v1/chat</code>
+            <span class="badge-desc">The main channel — every skill&rsquo;s text and tool-use calls</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">/v1/vision</code>
+            <span class="badge-desc">Screenshot questions — what the Browser&rsquo;s layer 3 calls</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">/v1/embed</code>
+            <span class="badge-desc">Turns text into vectors for the agent&rsquo;s memory search</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">/v1/cost/by_agent</code>
+            <span class="badge-desc">The ledger, sliced: what each skill spent, per session</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Take the tower&rsquo;s chair</h2>
+
+        <div class="quiz-container" id="quiz-module5">
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Right — the pin is a preference. After a short wait the gateway falls back through the failover ladder, the call lands on another provider, and the run continues."
+               data-explanation-wrong="Recall: a pin is a preference, not a promise. The tower's whole purpose is that one congested runway never grounds the flight.">
+            <h3 class="quiz-question">Mid-run, Gemini hits its 15-requests-per-minute ceiling. The Planner — pinned to Gemini — needs to make a call. What happens?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The run crashes with a rate-limit error</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>After a brief wait, the call falls through the ladder to another available provider</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The orchestrator pauses the whole graph until next minute</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Exactly — one line in gateway/agent_routing.yaml. Same philosophy as the skill catalogue: behaviour lives in config, so routing changes never require code changes."
+               data-explanation-wrong="Think config, not code. Skill-to-provider pinning lives in one small yaml file on the gateway side.">
+            <h3 class="quiz-question">You suspect the Critic would judge better on Gemini than on Groq. What is the entire change?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Edit one line in gateway/agent_routing.yaml: critic: gemini</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Change the provider call inside the Critic&rsquo;s Python class</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Set an environment variable before every run</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Yes — because every call passes through the gateway and is logged with its skill name, the ledger can answer 'who spent what' precisely. That's the payoff of a single front door."
+               data-explanation-wrong="The whole reason every call goes through one front door is that the answer to 'who spent what' lives in exactly one place.">
+            <h3 class="quiz-question">Yesterday&rsquo;s run felt expensive and you want to know which skill burned the most tokens. Where is the answer?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Each provider&rsquo;s billing dashboard, added up by hand</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The session folder&rsquo;s graph file</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The gateway&rsquo;s ledger — ask /v1/cost/by_agent for a per-skill breakdown</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
+<section class="module" id="module-6" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">06</span>
+      <h1 class="module-title">When Things Break</h1>
+      <p class="module-subtitle">Failures are not exceptions here — they are inputs. The system triages every one and keeps a black box of the whole flight.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: Triage -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The triage desk</h2>
+        <p>
+          When a task fails, the orchestrator does not panic and it does not blindly retry. Like a hospital triage desk, it first asks: <em>what kind of injury is this?</em> The answer decides the treatment — defined in <code>code/recovery.py</code>:
+        </p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#9889;</div>
+            <h4 class="pattern-title">Transient &rarr; skip</h4>
+            <p class="pattern-desc">A network hiccup or a busy provider. The gateway already retried; re-planning would not help. Wave the branch off and move on.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">&#128221;</div>
+            <h4 class="pattern-title">Validation &rarr; skip</h4>
+            <p class="pattern-desc">A skill emitted a malformed plan — that is a bug in a prompt file. Fix the prompt, not the run. Retrying would produce the same garbage.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#128736;&#65039;</div>
+            <h4 class="pattern-title">Upstream &rarr; replan</h4>
+            <p class="pattern-desc">The task genuinely could not get what it needed. Call the Planner back with a failure report and let it draw a detour.</p>
+          </div>
+        </div>
+
+        <p>One exception: if the <em>Planner itself</em> fails, the system never asks the Planner to fix the Planner — that way lies an infinite loop. It skips instead.</p>
+      </section>
+
+      <!-- SCREEN 2: Diagnosis in code -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">How the diagnosis is made</h2>
+        <p>Triage works by reading the error message for symptoms. Here is the &ldquo;transient injury&rdquo; checklist:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/recovery.py</span>
+            <pre><code>
+<span class="code-line">transient_markers = (</span>
+<span class="code-line">    <span class="code-string">"503"</span>, <span class="code-string">"502"</span>, <span class="code-string">"504"</span>,</span>
+<span class="code-line">    <span class="code-string">"timeout"</span>, <span class="code-string">"timed out"</span>,</span>
+<span class="code-line">    <span class="code-string">"connection"</span>, <span class="code-string">"connectionerror"</span>, <span class="code-string">"httpstatuserror"</span>,</span>
+<span class="code-line">    <span class="code-string">"service unavailable"</span>, <span class="code-string">"bad gateway"</span>, <span class="code-string">"gateway timeout"</span>,</span>
+<span class="code-line">)</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">any</span>(m <span class="code-keyword">in</span> e <span class="code-keyword">for</span> m <span class="code-keyword">in</span> transient_markers):</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-string">"transient"</span></span>
+<span class="code-line"><span class="code-keyword">return</span> <span class="code-string">"upstream_failure"</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Here is the list of phrases that mean &ldquo;the internet had a moment&rdquo;...</p>
+              <p class="tl">...server-busy codes like <span class="term" data-definition="503, 502 and 504 are HTTP status codes a server sends when it is overloaded or its own upstream is down — 'try again later', not 'you did something wrong'.">503</span>...</p>
+              <p class="tl">...things that gave up waiting...</p>
+              <p class="tl">...and connections that dropped.</p>
+              <p class="tl">If the error message contains any of these symptoms...</p>
+              <p class="tl">...diagnose it as a passing condition.</p>
+              <p class="tl">Anything else: a real failure worth re-planning around.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Recovery without amnesia</strong>
+            <p>When the Planner is recalled, it is handed the IDs of every task that already succeeded — so the detour reuses finished work instead of redoing it. When you ask an AI assistant to add retry logic anywhere, ask for this too: <em>&ldquo;on retry, reuse completed results.&rdquo;</em></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The critic's two strikes -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The Critic gets two strikes, not infinite</h2>
+        <p>A Critic rejecting some output is its own kind of failure — handled with a strict allowance:</p>
+
+        <div class="step-cards stagger-children">
+          <div class="step-card animate-in">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Strike one: verdict = fail</strong>
+              <p>The downstream task is marked &ldquo;skipped&rdquo; so it never consumes the rejected output, and a recovery Planner is spliced in to redo the branch.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Strike two: the redo fails too</strong>
+              <p>Each branch gets exactly one recovery. A second rejection hits the cap: the branch is abandoned.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>And it says so out loud</strong>
+              <p>The final log prints a warning naming every capped branch — so a thin answer is never a silent mystery.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#9878;&#65039;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Bounded retries are a design choice</strong>
+            <p>Unlimited retries plus an AI that keeps failing the same way equals an infinite money fire. Capping at one recovery per branch — and reporting the cap loudly — trades a perfect answer for a predictable, debuggable system.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: The black box -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The black box: every run leaves a flight record</h2>
+        <p>
+          Everything a run does is written to disk as it happens — like an aircraft&rsquo;s
+          <span class="term" data-definition="A black box (flight recorder) logs everything an aircraft did so investigators can reconstruct any flight afterwards. Here: every prompt, result, and decision of a run, saved to disk.">black box</span>.
+          Each session folder holds:
+        </p>
+
+        <div class="file-tree animate-in">
+          <div class="ft-folder open">
+            <span class="ft-name">code/state/sessions/&lt;session-id&gt;/</span>
+            <span class="ft-desc">one folder per run</span>
+            <div class="ft-children">
+              <div class="ft-file">
+                <span class="ft-name">query.txt</span>
+                <span class="ft-desc">the goal you typed, word for word</span>
+              </div>
+              <div class="ft-file">
+                <span class="ft-name">graph.json</span>
+                <span class="ft-desc">the full task graph and each node&rsquo;s status</span>
+              </div>
+              <div class="ft-folder">
+                <span class="ft-name">nodes/</span>
+                <span class="ft-desc">per-task records: the EXACT prompt sent and result received</span>
+              </div>
+              <div class="ft-folder">
+                <span class="ft-name">browser/</span>
+                <span class="ft-desc">per-turn screenshots whenever the Browser skill ran</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p>
+          Two commands read the box. <code>flow.py --resume &lt;session-id&gt;</code> restarts an interrupted run — finished tasks stay finished, only unfinished ones rerun. And <code>replay.py &lt;session-id&gt;</code> walks the run node by node, showing each task&rsquo;s skill, provider, timing, and — on demand — the full prompt it was sent.
+        </p>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Observability is a feature you can ask for</strong>
+            <p>The single best debugging question for any AI system is <em>&ldquo;what exactly was the model shown?&rdquo;</em> This codebase can always answer it, because it saves every rendered prompt. When steering an AI assistant on your own project, ask for the same: <em>&ldquo;log the exact prompt and response for every model call.&rdquo;</em></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: Quiz + wrap-up -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Final round: you&rsquo;re on call</h2>
+
+        <div class="quiz-container" id="quiz-module6">
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right — 503 is a transient symptom. The gateway already retried with failover; a new plan can't fix a busy server, so the branch is skipped rather than re-planned."
+               data-explanation-wrong="Triage the error first: 503 is on the transient-markers list. What does the decision table say about transient injuries?">
+            <h3 class="quiz-question">A research task fails with &ldquo;503 service unavailable.&rdquo; Why does the orchestrator NOT call the Planner for a detour?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Because research tasks are never important enough to re-plan</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Because the Planner is busy with other nodes</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Because the failure is transient — the gateway already retried, and a new plan cannot fix a busy server</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly — one recovery per branch. The second rejection hits the cap: the branch is abandoned, and the final log prints a warning naming it, so the thin answer explains itself."
+               data-explanation-wrong="Each branch gets exactly one recovery attempt. Think about what happens on the rejection AFTER that — and how the system makes sure you find out.">
+            <h3 class="quiz-question">The Critic rejects the Distiller&rsquo;s table. A recovery redo runs — and the Critic rejects that too. What happens now?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Recovery keeps looping until the Critic is satisfied</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The branch is abandoned — and the final log loudly names it so the missing data is no mystery</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The Critic is overruled and the original table is used anyway</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Yes — the graph is saved to disk after every round, so --resume picks up exactly where the run stopped. Completed tasks keep their results; only unfinished ones rerun."
+               data-explanation-wrong="Remember the black box: the graph and every finished result are already on disk. There's a flag built for exactly this situation.">
+            <h3 class="quiz-question">Your laptop dies 20 minutes into a long run. What is the least wasteful way back?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Run flow.py --resume with the session id — finished work is kept, only unfinished tasks rerun</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Start the same query from scratch — runs are too entangled to resume</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Manually edit graph.json to mark the unfinished tasks complete</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module6')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module6')">Try Again</button>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#127891;</div>
+          <div class="callout-content">
+            <strong class="callout-title">You now know the whole machine</strong>
+            <p>A growing graph of skills (Modules 1–2), defined as config not code (Module 3), with a cost-aware ladder for hard web pages (Module 4), one front door for every AI call (Module 5), and triage + a black box for when reality pushes back (Module 6). To extend it: add a job card to the catalogue. To debug it: open the replay. The engine itself? Leave it be.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
+  </main>
+
+</body>
+</html>

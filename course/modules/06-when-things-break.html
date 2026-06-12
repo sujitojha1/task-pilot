@@ -1,0 +1,253 @@
+<section class="module" id="module-6" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">06</span>
+      <h1 class="module-title">When Things Break</h1>
+      <p class="module-subtitle">Failures are not exceptions here — they are inputs. The system triages every one and keeps a black box of the whole flight.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: Triage -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The triage desk</h2>
+        <p>
+          When a task fails, the orchestrator does not panic and it does not blindly retry. Like a hospital triage desk, it first asks: <em>what kind of injury is this?</em> The answer decides the treatment — defined in <code>code/recovery.py</code>:
+        </p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#9889;</div>
+            <h4 class="pattern-title">Transient &rarr; skip</h4>
+            <p class="pattern-desc">A network hiccup or a busy provider. The gateway already retried; re-planning would not help. Wave the branch off and move on.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">&#128221;</div>
+            <h4 class="pattern-title">Validation &rarr; skip</h4>
+            <p class="pattern-desc">A skill emitted a malformed plan — that is a bug in a prompt file. Fix the prompt, not the run. Retrying would produce the same garbage.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#128736;&#65039;</div>
+            <h4 class="pattern-title">Upstream &rarr; replan</h4>
+            <p class="pattern-desc">The task genuinely could not get what it needed. Call the Planner back with a failure report and let it draw a detour.</p>
+          </div>
+        </div>
+
+        <p>One exception: if the <em>Planner itself</em> fails, the system never asks the Planner to fix the Planner — that way lies an infinite loop. It skips instead.</p>
+      </section>
+
+      <!-- SCREEN 2: Diagnosis in code -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">How the diagnosis is made</h2>
+        <p>Triage works by reading the error message for symptoms. Here is the &ldquo;transient injury&rdquo; checklist:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/recovery.py</span>
+            <pre><code>
+<span class="code-line">transient_markers = (</span>
+<span class="code-line">    <span class="code-string">"503"</span>, <span class="code-string">"502"</span>, <span class="code-string">"504"</span>,</span>
+<span class="code-line">    <span class="code-string">"timeout"</span>, <span class="code-string">"timed out"</span>,</span>
+<span class="code-line">    <span class="code-string">"connection"</span>, <span class="code-string">"connectionerror"</span>, <span class="code-string">"httpstatuserror"</span>,</span>
+<span class="code-line">    <span class="code-string">"service unavailable"</span>, <span class="code-string">"bad gateway"</span>, <span class="code-string">"gateway timeout"</span>,</span>
+<span class="code-line">)</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">any</span>(m <span class="code-keyword">in</span> e <span class="code-keyword">for</span> m <span class="code-keyword">in</span> transient_markers):</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-string">"transient"</span></span>
+<span class="code-line"><span class="code-keyword">return</span> <span class="code-string">"upstream_failure"</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Here is the list of phrases that mean &ldquo;the internet had a moment&rdquo;...</p>
+              <p class="tl">...server-busy codes like <span class="term" data-definition="503, 502 and 504 are HTTP status codes a server sends when it is overloaded or its own upstream is down — 'try again later', not 'you did something wrong'.">503</span>...</p>
+              <p class="tl">...things that gave up waiting...</p>
+              <p class="tl">...and connections that dropped.</p>
+              <p class="tl">If the error message contains any of these symptoms...</p>
+              <p class="tl">...diagnose it as a passing condition.</p>
+              <p class="tl">Anything else: a real failure worth re-planning around.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Recovery without amnesia</strong>
+            <p>When the Planner is recalled, it is handed the IDs of every task that already succeeded — so the detour reuses finished work instead of redoing it. When you ask an AI assistant to add retry logic anywhere, ask for this too: <em>&ldquo;on retry, reuse completed results.&rdquo;</em></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The critic's two strikes -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The Critic gets two strikes, not infinite</h2>
+        <p>A Critic rejecting some output is its own kind of failure — handled with a strict allowance:</p>
+
+        <div class="step-cards stagger-children">
+          <div class="step-card animate-in">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Strike one: verdict = fail</strong>
+              <p>The downstream task is marked &ldquo;skipped&rdquo; so it never consumes the rejected output, and a recovery Planner is spliced in to redo the branch.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Strike two: the redo fails too</strong>
+              <p>Each branch gets exactly one recovery. A second rejection hits the cap: the branch is abandoned.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>And it says so out loud</strong>
+              <p>The final log prints a warning naming every capped branch — so a thin answer is never a silent mystery.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#9878;&#65039;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Bounded retries are a design choice</strong>
+            <p>Unlimited retries plus an AI that keeps failing the same way equals an infinite money fire. Capping at one recovery per branch — and reporting the cap loudly — trades a perfect answer for a predictable, debuggable system.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: The black box -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The black box: every run leaves a flight record</h2>
+        <p>
+          Everything a run does is written to disk as it happens — like an aircraft&rsquo;s
+          <span class="term" data-definition="A black box (flight recorder) logs everything an aircraft did so investigators can reconstruct any flight afterwards. Here: every prompt, result, and decision of a run, saved to disk.">black box</span>.
+          Each session folder holds:
+        </p>
+
+        <div class="file-tree animate-in">
+          <div class="ft-folder open">
+            <span class="ft-name">code/state/sessions/&lt;session-id&gt;/</span>
+            <span class="ft-desc">one folder per run</span>
+            <div class="ft-children">
+              <div class="ft-file">
+                <span class="ft-name">query.txt</span>
+                <span class="ft-desc">the goal you typed, word for word</span>
+              </div>
+              <div class="ft-file">
+                <span class="ft-name">graph.json</span>
+                <span class="ft-desc">the full task graph and each node&rsquo;s status</span>
+              </div>
+              <div class="ft-folder">
+                <span class="ft-name">nodes/</span>
+                <span class="ft-desc">per-task records: the EXACT prompt sent and result received</span>
+              </div>
+              <div class="ft-folder">
+                <span class="ft-name">browser/</span>
+                <span class="ft-desc">per-turn screenshots whenever the Browser skill ran</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p>
+          Two commands read the box. <code>flow.py --resume &lt;session-id&gt;</code> restarts an interrupted run — finished tasks stay finished, only unfinished ones rerun. And <code>replay.py &lt;session-id&gt;</code> walks the run node by node, showing each task&rsquo;s skill, provider, timing, and — on demand — the full prompt it was sent.
+        </p>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Observability is a feature you can ask for</strong>
+            <p>The single best debugging question for any AI system is <em>&ldquo;what exactly was the model shown?&rdquo;</em> This codebase can always answer it, because it saves every rendered prompt. When steering an AI assistant on your own project, ask for the same: <em>&ldquo;log the exact prompt and response for every model call.&rdquo;</em></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: Quiz + wrap-up -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Final round: you&rsquo;re on call</h2>
+
+        <div class="quiz-container" id="quiz-module6">
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right — 503 is a transient symptom. The gateway already retried with failover; a new plan can't fix a busy server, so the branch is skipped rather than re-planned."
+               data-explanation-wrong="Triage the error first: 503 is on the transient-markers list. What does the decision table say about transient injuries?">
+            <h3 class="quiz-question">A research task fails with &ldquo;503 service unavailable.&rdquo; Why does the orchestrator NOT call the Planner for a detour?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Because research tasks are never important enough to re-plan</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Because the Planner is busy with other nodes</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Because the failure is transient — the gateway already retried, and a new plan cannot fix a busy server</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly — one recovery per branch. The second rejection hits the cap: the branch is abandoned, and the final log prints a warning naming it, so the thin answer explains itself."
+               data-explanation-wrong="Each branch gets exactly one recovery attempt. Think about what happens on the rejection AFTER that — and how the system makes sure you find out.">
+            <h3 class="quiz-question">The Critic rejects the Distiller&rsquo;s table. A recovery redo runs — and the Critic rejects that too. What happens now?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Recovery keeps looping until the Critic is satisfied</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The branch is abandoned — and the final log loudly names it so the missing data is no mystery</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The Critic is overruled and the original table is used anyway</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Yes — the graph is saved to disk after every round, so --resume picks up exactly where the run stopped. Completed tasks keep their results; only unfinished ones rerun."
+               data-explanation-wrong="Remember the black box: the graph and every finished result are already on disk. There's a flag built for exactly this situation.">
+            <h3 class="quiz-question">Your laptop dies 20 minutes into a long run. What is the least wasteful way back?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Run flow.py --resume with the session id — finished work is kept, only unfinished tasks rerun</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Start the same query from scratch — runs are too entangled to resume</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Manually edit graph.json to mark the unfinished tasks complete</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module6')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module6')">Try Again</button>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#127891;</div>
+          <div class="callout-content">
+            <strong class="callout-title">You now know the whole machine</strong>
+            <p>A growing graph of skills (Modules 1–2), defined as config not code (Module 3), with a cost-aware ladder for hard web pages (Module 4), one front door for every AI call (Module 5), and triage + a black box for when reality pushes back (Module 6). To extend it: add a job card to the catalogue. To debug it: open the replay. The engine itself? Leave it be.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>

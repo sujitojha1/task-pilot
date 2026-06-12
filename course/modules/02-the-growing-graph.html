@@ -1,0 +1,273 @@
+<section class="module" id="module-2" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">The Growing Graph</h1>
+      <p class="module-subtitle">The plan is not written once and executed. It is a living map that draws new roads while the agent is already driving.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: The evidence board -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A detective&rsquo;s evidence board</h2>
+        <p>
+          Picture a detective&rsquo;s evidence board: photos pinned to a wall, strings connecting them. When a new lead comes in, the detective pins a new photo and runs new strings to it. The board <em>grows</em> as the case unfolds — nobody knew its final shape on day one.
+        </p>
+        <p>
+          That board is the agent&rsquo;s plan. Each pinned photo is a
+          <span class="term" data-definition="A node is one task on the plan — one unit of work like 'research this topic' or 'write the final answer'. The plan is a collection of nodes connected by arrows.">node</span>
+          (one task, run by one skill), and the strings are arrows saying &ldquo;this task feeds that one.&rdquo; Engineers call this shape a
+          <span class="term" data-definition="A DAG (directed acyclic graph) is a network of tasks connected by one-way arrows, with no loops — work always flows forward, never circles back on itself.">DAG</span>.
+          The
+          <span class="term" data-definition="The orchestrator is the coordinator program (here, code/flow.py). It doesn't do any task itself — it decides which tasks are ready, runs them, and grows the plan with the results.">orchestrator</span>
+          in <code>code/flow.py</code> is the detective: it never investigates anything itself, it just decides which leads are ready to chase and pins what comes back.
+        </p>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#129513;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Why a graph and not a checklist?</strong>
+            <p>A checklist runs one item at a time. A graph knows which tasks don&rsquo;t depend on each other — so three research tasks can run <em>at the same time</em>, and the comparison task waits for all three. Same work, much faster.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: The heartbeat -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The heartbeat: run what&rsquo;s ready, repeat</h2>
+        <p>The whole engine is one loop. Every beat, it asks: which tasks have all their inputs finished? Run those. Pin the results. Ask again.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/flow.py</span>
+            <pre><code>
+<span class="code-line"><span class="code-keyword">while</span> <span class="code-keyword">True</span>:</span>
+<span class="code-line">    ready = graph.ready_nodes()</span>
+<span class="code-line">    <span class="code-keyword">if</span> <span class="code-keyword">not</span> ready <span class="code-keyword">and</span> <span class="code-keyword">not</span> graph.has_running():</span>
+<span class="code-line">        <span class="code-keyword">break</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Keep going around this loop forever (until told to stop)...</p>
+              <p class="tl">Ask the board: which tasks have every upstream task finished?</p>
+              <p class="tl">If nothing is ready AND nothing is still running...</p>
+              <p class="tl">...the case is closed. Stop the loop.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>And here is the rule that decides &ldquo;ready&rdquo; — a task can start when every task feeding it is either done or deliberately skipped:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/flow.py</span>
+            <pre><code>
+<span class="code-line">preds = <span class="code-function">list</span>(self.g.predecessors(nid))</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">all</span>(self.g.nodes[p][<span class="code-string">"status"</span>] <span class="code-keyword">in</span> (<span class="code-string">"complete"</span>, <span class="code-string">"skipped"</span>) <span class="code-keyword">for</span> p <span class="code-keyword">in</span> preds):</span>
+<span class="code-line">    out.append(nid)</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Gather every task whose string points INTO this one — its suppliers.</p>
+              <p class="tl">If every single supplier has either finished or been waved off...</p>
+              <p class="tl">...this task goes on the &ldquo;run it now&rdquo; list.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: Five ways the board grows -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Five ways new pins land on the board</h2>
+        <p>The graph starts with a single node — the Planner — and grows through exactly five mechanisms:</p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#127793;</div>
+            <h4 class="pattern-title">The Planner&rsquo;s seed plan</h4>
+            <p class="pattern-desc">The Planner reads your goal and pins the first batch of tasks — the opening leads of the case.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#10133;</div>
+            <h4 class="pattern-title">Dynamic successors</h4>
+            <p class="pattern-desc">Any skill can finish its work and say &ldquo;now someone should do THIS next&rdquo; — pinning follow-up tasks itself.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">&#128279;</div>
+            <h4 class="pattern-title">Static successors</h4>
+            <p class="pattern-desc">Some pairs are wired in config: whenever the Coder finishes, a sandbox run is automatically pinned after it.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#128269;</div>
+            <h4 class="pattern-title">Critic auto-insertion</h4>
+            <p class="pattern-desc">Skills marked <code>critic: true</code> get a quality-check node spliced onto every outgoing string before anyone uses their output.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+            <div class="pattern-icon" style="background: var(--color-actor-5)">&#128736;&#65039;</div>
+            <h4 class="pattern-title">Recovery re-planning</h4>
+            <p class="pattern-desc">When a task fails, the Planner is called back with a failure report to draw a detour around the dead end.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Growth needs a leash</strong>
+            <p>A plan that can extend itself can also run away with itself. One line guards the whole system: <code>MAX_NODES = 60</code> — a hard cap so a looping Planner cannot grow the board forever. Whenever you build something self-extending, give it a leash first.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Group chat -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Listen in on one run</h2>
+        <p>If the skills had a group chat, a research run would read like this. Press <em>Next Message</em> to eavesdrop:</p>
+
+        <div class="chat-window animate-in" id="chat-module2">
+          <div class="chat-messages">
+            <div class="chat-message" data-msg="0" data-sender="planner" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">P</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">Planner</span>
+                <p>Goal just landed: &ldquo;find similar projects and compare them.&rdquo; I&rsquo;m pinning three research tasks — one per project — then a comparison, then a write-up.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="1" data-sender="researcher" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-2)">R</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-2)">Researcher &times;3</span>
+                <p>All three of us running in parallel. Searching, fetching pages, normalising what we find into clean text. Done — results pinned to the board.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="2" data-sender="distiller" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-3)">D</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-3)">Distiller</span>
+                <p>I waited until all three of you finished — the board wouldn&rsquo;t release me earlier. Extracting a structured comparison table now.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="3" data-sender="critic" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-4)">C</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-4)">Critic</span>
+                <p>Nobody touches that table until I check it against what the user actually asked. &hellip;Verdict: <strong>pass</strong>. Carry on.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="4" data-sender="formatter" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-5)">F</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-5)">Formatter</span>
+                <p>Thanks all. Composing the final answer the user will actually read — I&rsquo;m the last pin on the board.</p>
+              </div>
+            </div>
+            <div class="chat-message" data-msg="5" data-sender="planner" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">P</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">Planner</span>
+                <p>And if any of you had failed, I&rsquo;d have been called back with the failure report to draw a detour. That&rsquo;s the job.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-typing" id="chat-module2-typing" style="display:none">
+            <div class="chat-avatar" id="chat-module2-typing-avatar">?</div>
+            <div class="chat-typing-dots">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+            </div>
+          </div>
+
+          <div class="chat-controls">
+            <button class="btn chat-next-btn">Next Message</button>
+            <button class="btn chat-all-btn">Play All</button>
+            <button class="btn chat-reset-btn">Replay</button>
+            <span class="chat-progress"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Think like the orchestrator</h2>
+
+        <div class="quiz-container" id="quiz-module2">
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly — the ready rule holds it back until every supplier is complete or skipped. No timers, no guessing: the graph structure itself is the schedule."
+               data-explanation-wrong="Remember the ready rule: a task runs only when every task feeding it is finished or skipped. Nothing starts on a timer.">
+            <h3 class="quiz-question">A comparison task needs results from two research tasks. One finished, one is still running. What does the orchestrator do with the comparison task?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Starts it with the one result available and patches in the second later</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Leaves it pending — it only becomes &ldquo;ready&rdquo; when both suppliers are done</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Cancels the slow research task and proceeds with partial data</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right — MAX_NODES = 60 is the leash. The loop refuses to grow the board past the cap, no matter how enthusiastic the Planner gets."
+               data-explanation-wrong="Self-extending systems need a hard limit somewhere. Look for the one constant standing between an over-eager Planner and an infinite plan.">
+            <h3 class="quiz-question">A buggy prompt makes the Planner keep adding new tasks on every round, forever. What actually stops the run?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Nothing — it runs until you press Ctrl+C</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The Critic notices the loop and rejects the plan</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A hard cap of 60 nodes — the orchestrator refuses to grow the graph further</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Yes — because the Distiller is marked critic: true, the orchestrator splices a Critic onto every outgoing string. The Formatter's turn comes only if the verdict is pass."
+               data-explanation-wrong="The Distiller carries a special flag in its config. Recall what the orchestrator does to every outgoing connection from a critic: true skill.">
+            <h3 class="quiz-question">The Distiller finishes its table and the plan says the Formatter is next. What happens before the Formatter sees that table?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A Critic node is automatically inserted between them, and it must pass first</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Nothing — the Formatter runs immediately with the table as input</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The Planner is consulted to approve the hand-off</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>

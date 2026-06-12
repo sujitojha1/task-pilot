@@ -1,0 +1,226 @@
+<section class="module" id="module-5" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">The Gateway</h1>
+      <p class="module-subtitle">Seven AI providers, one front door. Every call gets routed, rate-limited, retried — and written into a ledger.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: One front door -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">An air traffic control tower</h2>
+        <p>
+          The agent never calls an AI
+          <span class="term" data-definition="A provider is a company or service that runs AI models you can call over the internet — Gemini, Groq, and Cerebras are providers. Each has its own pricing, speed limits, and strengths.">provider</span>
+          directly. Every request flies through the Gateway (<code>gateway/main.py</code>) — a control tower with seven runways: Gemini, Groq, Cerebras, NVIDIA, OpenRouter, GitHub Models, and a local
+          <span class="term" data-definition="Ollama runs AI models on your own computer instead of in the cloud — free and private, but limited by your hardware.">Ollama</span>.
+        </p>
+        <p>The tower&rsquo;s job, on every single call:</p>
+
+        <div class="icon-rows stagger-children">
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-2)">&#128739;&#65039;</div>
+            <div>
+              <strong>Assign a runway</strong>
+              <p>Pick a provider that has the needed capabilities (tools, vision, structured output) and free capacity right now.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-4)">&#9203;</div>
+            <div>
+              <strong>Respect the congestion rules</strong>
+              <p>Each provider has a <span class="term" data-definition="A rate limit is a cap on how often you may call a service — e.g. 15 requests per minute. Exceed it and the service starts refusing you, so well-behaved programs track it themselves.">rate limit</span>. The tower tracks calls per minute, per day, and <span class="term" data-definition="A token is the unit AI providers count and bill by — roughly three-quarters of a word. 'Hello there' is about 3 tokens.">tokens</span> spent, and never sends a plane to a full runway.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-5)">&#128257;</div>
+            <div>
+              <strong>Reroute on trouble</strong>
+              <p>Provider down or busy? The call falls through a <span class="term" data-definition="Failover means automatically switching to a backup when the first choice fails — like a generator kicking in during a power cut. A failover ladder is the ordered list of backups to try.">failover ladder</span> to the next one. The caller never notices.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-1)">&#128209;</div>
+            <div>
+              <strong>Log every landing</strong>
+              <p>Every call — tokens, latency, which skill made it, which session — lands in a <span class="term" data-definition="SQLite is a tiny database that lives in a single file on disk — no server to install. Perfect for a local ledger.">SQLite</span> ledger. Cost accounting comes free.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: Who flies where -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Who flies on which airline</h2>
+        <p>Each skill is pinned to a preferred provider in one tiny file — matching the job to the model&rsquo;s strengths:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — gateway/agent_routing.yaml</span>
+            <pre><code>
+<span class="code-line"><span class="code-property">planner</span>: gemini</span>
+<span class="code-line"><span class="code-property">researcher</span>: gemini</span>
+<span class="code-line"><span class="code-property">distiller</span>: gemini</span>
+<span class="code-line"><span class="code-property">summariser</span>: gemini</span>
+<span class="code-line"><span class="code-property">critic</span>: groq</span>
+<span class="code-line"><span class="code-property">formatter</span>: gemini</span>
+<span class="code-line"><span class="code-property">retriever</span>: github</span>
+<span class="code-line"><span class="code-property">sandbox_executor</span>: github</span>
+<span class="code-line"><span class="code-property">coder</span>: gemini</span>
+<span class="code-line"><span class="code-property">browser</span>: gemini</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">The Planner needs the strongest reasoning — give it Gemini.</p>
+              <p class="tl">The bulky reading-and-writing skills also go to Gemini, which handles very long documents comfortably.</p>
+              <p class="tl">The Critic only says pass or fail — send it to Groq, a small, fast, cheap worker.</p>
+              <p class="tl">Classifier-ish skills ride the free GitHub Models tier.</p>
+              <p class="tl">Changing any of this is a one-line edit. No code.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#128204;</div>
+          <div class="callout-content">
+            <strong class="callout-title">A pin is a preference, not a promise</strong>
+            <p>If a pinned provider is cooling down, the gateway waits briefly, then falls back through the normal ladder. The system degrades gracefully instead of refusing to fly.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The congestion rules in code -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">How a runway says &ldquo;not now&rdquo;</h2>
+        <p>Before any call, the router asks the provider&rsquo;s bookkeeping: can I use you right now? Three of its checks:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — gateway/router.py</span>
+            <pre><code>
+<span class="code-line">wait = limits[<span class="code-string">"cooldown"</span>] - (now - self.last_call)</span>
+<span class="code-line"><span class="code-keyword">if</span> wait &gt; <span class="code-string">0</span>:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span>, f<span class="code-string">"cooldown ({wait:.1f}s)"</span></span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">len</span>(self.calls_minute) &gt;= limits[<span class="code-string">"rpm"</span>]:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span>, <span class="code-string">"RPM limit"</span></span>
+<span class="code-line"><span class="code-keyword">if</span> self.calls_today &gt;= limits[<span class="code-string">"rpd"</span>]:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span>, <span class="code-string">"RPD limit"</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Has enough time passed since this provider&rsquo;s last call? Some need a short breather between requests.</p>
+              <p class="tl">If not — refuse, and say exactly how long the breather has left.</p>
+              <p class="tl">Already at the requests-per-minute ceiling? Refuse.</p>
+              <p class="tl">Already at the requests-per-day ceiling? Refuse.</p>
+              <p class="tl">Every refusal names its reason — so the router can report exactly why it skipped a provider.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>Beyond chat, the same front door serves the rest of the system:</p>
+
+        <div class="badge-list stagger-children">
+          <div class="badge-item animate-in">
+            <code class="badge-code">/v1/chat</code>
+            <span class="badge-desc">The main channel — every skill&rsquo;s text and tool-use calls</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">/v1/vision</code>
+            <span class="badge-desc">Screenshot questions — what the Browser&rsquo;s layer 3 calls</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">/v1/embed</code>
+            <span class="badge-desc">Turns text into vectors for the agent&rsquo;s memory search</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">/v1/cost/by_agent</code>
+            <span class="badge-desc">The ledger, sliced: what each skill spent, per session</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Take the tower&rsquo;s chair</h2>
+
+        <div class="quiz-container" id="quiz-module5">
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Right — the pin is a preference. After a short wait the gateway falls back through the failover ladder, the call lands on another provider, and the run continues."
+               data-explanation-wrong="Recall: a pin is a preference, not a promise. The tower's whole purpose is that one congested runway never grounds the flight.">
+            <h3 class="quiz-question">Mid-run, Gemini hits its 15-requests-per-minute ceiling. The Planner — pinned to Gemini — needs to make a call. What happens?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The run crashes with a rate-limit error</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>After a brief wait, the call falls through the ladder to another available provider</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The orchestrator pauses the whole graph until next minute</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Exactly — one line in gateway/agent_routing.yaml. Same philosophy as the skill catalogue: behaviour lives in config, so routing changes never require code changes."
+               data-explanation-wrong="Think config, not code. Skill-to-provider pinning lives in one small yaml file on the gateway side.">
+            <h3 class="quiz-question">You suspect the Critic would judge better on Gemini than on Groq. What is the entire change?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Edit one line in gateway/agent_routing.yaml: critic: gemini</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Change the provider call inside the Critic&rsquo;s Python class</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Set an environment variable before every run</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Yes — because every call passes through the gateway and is logged with its skill name, the ledger can answer 'who spent what' precisely. That's the payoff of a single front door."
+               data-explanation-wrong="The whole reason every call goes through one front door is that the answer to 'who spent what' lives in exactly one place.">
+            <h3 class="quiz-question">Yesterday&rsquo;s run felt expensive and you want to know which skill burned the most tokens. Where is the answer?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Each provider&rsquo;s billing dashboard, added up by hand</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The session folder&rsquo;s graph file</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The gateway&rsquo;s ledger — ask /v1/cost/by_agent for a per-skill breakdown</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>

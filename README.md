@@ -83,6 +83,14 @@ Resume an interrupted session with `uv run python flow.py --resume <session-id>`
 
 ---
 
+## Interactive course (dev documentation)
+
+`course/index.html` is an interactive, single-page HTML course that teaches how this codebase works — the agent flow, the skill catalogue, the browser cascade, and the gateway — with animated visualizations, quizzes, and plain-English code translations. Open it directly in a browser; it works offline (the only external fetch is Google Fonts, which degrades gracefully).
+
+This is **developer documentation for this repository only**, not a feature of the agent: it is generated with the [codebase-to-course](https://github.com/zarazhangrui/codebase-to-course) Claude Code skill vendored at `.claude/skills/codebase-to-course/`, which is deliberately *not* registered in `code/agent_config.yaml`. To regenerate after significant architecture changes, ask Claude Code to "regenerate the course for this repo" (the skill triggers on that), then run `bash build.sh` inside `course/` to reassemble `index.html` from the per-module files.
+
+---
+
 ## Design principles
 
 - **Verify before act** — login state is a precondition, checked first; a blocked gateway is reported, not worked around
