@@ -1,0 +1,217 @@
+<section class="module" id="module-4" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">The Browser Cascade</h1>
+      <p class="module-subtitle">Reading a web page can cost almost nothing — or a vision AI looking at screenshots. The skill always tries the cheap way first.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: Why a browser skill -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Getting answers out of a building</h2>
+        <p>
+          Suppose you need information from an office building. You&rsquo;d read the sign outside first. If that&rsquo;s not enough, follow the posted directions. Still stuck? Ask at the front desk, where the receptionist reads the building directory to you. Only as a last resort do you walk the halls yourself, looking around room by room.
+        </p>
+        <p>
+          The Browser skill (<code>code/browser/</code>) treats every web page the same way. Many modern pages are
+          <span class="term" data-definition="A JavaScript-rendered page is built by code running in your browser after the page loads — so a simple download of the page gets an empty shell, with the real content assembled only inside a live browser.">JavaScript-rendered</span>
+          or hide their answers behind filters and buttons, so the Researcher&rsquo;s simple page-fetch comes back empty. This skill escalates through four layers, stopping at the first one that succeeds:
+        </p>
+
+        <div class="pattern-cards stagger-children">
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+            <div class="pattern-icon" style="background: var(--color-actor-5)">&#128203;</div>
+            <h4 class="pattern-title">1 &middot; Extract</h4>
+            <p class="pattern-desc">Download the page and pull out the readable text. No browser, no AI — nearly free.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#127922;</div>
+            <h4 class="pattern-title">2a &middot; Deterministic</h4>
+            <p class="pattern-desc">If the caller supplied exact click/fill instructions, replay them in a real browser. No guessing allowed.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#128483;&#65039;</div>
+            <h4 class="pattern-title">2b &middot; A11y</h4>
+            <p class="pattern-desc">A real browser reads the page&rsquo;s <span class="term" data-definition="The accessibility tree (a11y for short) is the text outline of a page that screen readers use — every button, link, and field with its label, no pictures needed.">accessibility tree</span> and a text-only AI decides what to click, step by step.</p>
+          </div>
+          <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#128064;</div>
+            <h4 class="pattern-title">3 &middot; Vision</h4>
+            <p class="pattern-desc">Screenshot the page, draw numbered tags on every clickable element, and let a <span class="term" data-definition="A vision model is an AI that can look at images, not just read text — you show it a screenshot and it tells you what it sees and where to click.">vision model</span> literally look.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: Flow animation -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Watch one request climb the ladder</h2>
+        <p>The goal: &ldquo;filter laptops under &#8377;80,000 and extract the top 3.&rdquo; Step through what the cascade does:</p>
+
+        <div class="flow-animation animate-in" data-steps='[
+          {"highlight":"flow-actor-1","label":"The Planner hands over a URL and a goal that requires filtering a product list"},
+          {"highlight":"flow-actor-2","label":"Layer 1 downloads the page and extracts its text - cheap, instant, no AI","packet":true,"from":"actor-1","to":"actor-2"},
+          {"highlight":"flow-actor-2","label":"The goal contains the word filter - an interactive verb. Extraction alone can never satisfy it. Escalate."},
+          {"highlight":"flow-actor-3","label":"Layer 2b opens a real browser. A text AI reads the page outline and clicks the filter widgets, turn by turn","packet":true,"from":"actor-2","to":"actor-3"},
+          {"highlight":"flow-actor-3","label":"The filter widget is a custom slider the outline does not describe well. Twelve turns pass without success. Escalate."},
+          {"highlight":"flow-actor-4","label":"Layer 3 screenshots the page and draws numbered tags on every clickable element. The vision AI looks, drags the slider, reads the results","packet":true,"from":"actor-3","to":"actor-4"},
+          {"highlight":"flow-actor-4","label":"Success at layer 3. The answer travels back with a record of which layer won - that choice shows up later in the replay"}
+        ]'>
+          <div class="flow-actors">
+            <div class="flow-actor" id="flow-actor-1">
+              <div class="flow-actor-icon">&#127919;</div>
+              <span>Goal + URL</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-2">
+              <div class="flow-actor-icon">&#128203;</div>
+              <span>Extract</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-3">
+              <div class="flow-actor-icon">&#128483;&#65039;</div>
+              <span>A11y</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-4">
+              <div class="flow-actor-icon">&#128064;</div>
+              <span>Vision</span>
+            </div>
+          </div>
+
+          <div class="flow-packet" id="flow-packet"></div>
+
+          <div class="flow-step-label" id="flow-label">Click &ldquo;Next Step&rdquo; to begin</div>
+
+          <div class="flow-controls">
+            <button class="btn flow-next-btn">Next Step</button>
+            <button class="btn flow-reset-btn">Restart</button>
+            <span class="flow-progress"></span>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#128176;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Cheap first, smart later</strong>
+            <p>This is an <span class="term" data-definition="An escalation ladder tries the cheapest method first and only brings in heavier, costlier machinery when the simple way fails — like trying a restart before calling a technician.">escalation ladder</span> — a pattern worth requesting by name when you steer an AI assistant: &ldquo;try the cheap path first and escalate only on failure.&rdquo; Most pages never get past layer 1, so the average cost stays tiny.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The escalation rule, in code -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The rule that triggers escalation</h2>
+        <p>How does layer 1 know its answer is not good enough? Two checks — too little text, or a goal that demands interaction:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/browser/skill.py</span>
+            <pre><code>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">len</span>(content) &lt; <span class="code-string">200</span>:</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span></span>
+<span class="code-line">interactive_verbs = (<span class="code-string">"click"</span>, <span class="code-string">"fill"</span>, <span class="code-string">"select"</span>, <span class="code-string">"type"</span>, <span class="code-string">"drag"</span>,</span>
+<span class="code-line">                     <span class="code-string">"filter"</span>, <span class="code-string">"sort"</span>, <span class="code-string">"submit"</span>, <span class="code-string">"navigate"</span>)</span>
+<span class="code-line"><span class="code-keyword">if</span> <span class="code-function">any</span>(v <span class="code-keyword">in</span> goal.lower() <span class="code-keyword">for</span> v <span class="code-keyword">in</span> interactive_verbs):</span>
+<span class="code-line">    <span class="code-keyword">return</span> <span class="code-keyword">False</span></span>
+<span class="code-line"><span class="code-keyword">return</span> <span class="code-keyword">True</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Got fewer than ~200 characters of text? That&rsquo;s a husk, not a page. Not useful.</p>
+              <p class="tl">Here is a list of action words...</p>
+              <p class="tl">...that all mean &ldquo;you must DO something on the page.&rdquo;</p>
+              <p class="tl">If the goal asks for any of them, reading alone can never succeed. Not useful.</p>
+              <p class="tl">Otherwise — the cheap layer&rsquo;s answer stands. Done.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-warning animate-in">
+          <div class="callout-icon">&#128679;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Blocked is a verdict, not a defeat</strong>
+            <p>If any layer finds a <span class="term" data-definition="A CAPTCHA is the 'prove you are human' test some sites show — distorted letters, image grids, or an 'I am not a robot' checkbox.">CAPTCHA</span> or a login wall, the skill does NOT keep climbing — clicking harder at a wall just wastes money. It returns immediately with the code <code>gateway_blocked</code>, and the Planner is recalled to route around the blocked site. Escalation fixes &ldquo;too hard&rdquo;; it cannot fix &ldquo;not allowed.&rdquo;</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Run the cascade in your head</h2>
+
+        <div class="quiz-container" id="quiz-module4">
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Right — a plain article page yields plenty of text at layer 1, and the goal has no action words. The browser and the AI never even start. Cheapest possible outcome."
+               data-explanation-wrong="Check both escalation triggers: is the extracted text long enough, and does the goal contain an action verb? A plain read of a text-rich page trips neither.">
+            <h3 class="quiz-question">Goal: &ldquo;read this news article and pull out the key dates.&rdquo; The page is an ordinary text article. Which layer produces the answer?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Layer 1 (extract) — long text, no action verbs, so the cascade stops immediately</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Layer 2b (a11y) — pulling out dates counts as interaction</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Layer 3 (vision) — dates need to be seen to be read reliably</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Exactly — 'sort' is on the interactive-verbs list, so layer 1 declares itself insufficient no matter how much text it extracted. Someone has to actually operate the page."
+               data-explanation-wrong="Re-read the escalation rule: one of the words in that goal appears verbatim in the interactive_verbs list, which forces escalation even when extraction returns lots of text.">
+            <h3 class="quiz-question">Goal: &ldquo;sort the table by price and grab the cheapest three.&rdquo; Layer 1 extracts 5,000 characters of page text. Why does the cascade still escalate?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>5,000 characters is over the limit, so the text is discarded</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Tables can never be extracted as text</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The goal contains &ldquo;sort&rdquo; — an action verb — and reading a page can never perform an action</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Yes — a CAPTCHA means blocked, and blocked is final for this site. The skill reports gateway_blocked at once, and the Planner reroutes — perhaps to a different source entirely."
+               data-explanation-wrong="Think about what escalation can and cannot fix. More capable layers solve harder pages — but a wall that says 'no robots' stays a wall at every layer.">
+            <h3 class="quiz-question">Halfway through, the page shows &ldquo;Let&rsquo;s confirm you are human.&rdquo; What does the skill do?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Escalates to vision — the vision model can solve the puzzle by looking at it</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Stops immediately with a gateway_blocked error so the Planner can route around the site</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Retries the same page every minute until the wall disappears</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>

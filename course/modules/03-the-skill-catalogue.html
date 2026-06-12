@@ -1,0 +1,248 @@
+<section class="module" id="module-3" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">The Skill Catalogue</h1>
+      <p class="module-subtitle">Every worker the agent can hire is defined by two small files — and adding a new one never touches the engine.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: A skill is two files -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A binder of laminated job cards</h2>
+        <p>
+          Imagine a staffing binder. Each page is one laminated job card: the role&rsquo;s name, what it does, which equipment it may use, and how much creative freedom it gets. To hire a new kind of worker, you add a page to the binder — you don&rsquo;t rebuild the office.
+        </p>
+        <p>
+          In this codebase, a skill is exactly that: one entry in
+          <code>code/agent_config.yaml</code> (the job card) plus one
+          <span class="term" data-definition="A prompt is the written instruction given to an AI model — the job briefing it reads before doing any work. Here each skill has its own prompt file, like prompts/critic.md.">prompt</span>
+          file in <code>code/prompts/</code> (the job briefing). There is <strong>no Python class per skill</strong> — the engine reads the binder and hires accordingly.
+        </p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/agent_config.yaml</span>
+            <pre><code>
+<span class="code-line"><span class="code-property">critic</span>:</span>
+<span class="code-line">  <span class="code-property">prompt</span>: prompts/critic.md</span>
+<span class="code-line">  <span class="code-property">temperature</span>: <span class="code-string">0.0</span>         <span class="code-comment"># pass/fail; we want determinism</span></span>
+<span class="code-line">  <span class="code-property">max_tokens</span>: <span class="code-string">500</span></span>
+<span class="code-line">  <span class="code-property">description</span>: Evaluates an upstream node's output; emits pass or fail with rationale.</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">A worker called &ldquo;critic&rdquo; exists.</p>
+              <p class="tl">Its job briefing lives in this text file.</p>
+              <p class="tl">Zero creative freedom — a judge should give the same verdict every time.</p>
+              <p class="tl">Keep its answers short (about 500 words&rsquo; worth).</p>
+              <p class="tl">Its job: check another worker&rsquo;s output and say pass or fail, with a reason.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: The cast -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Ten cards in the binder</h2>
+        <p>The catalogue ships with ten skills. Each one is a specialist, not a generalist:</p>
+
+        <div class="badge-list stagger-children">
+          <div class="badge-item animate-in">
+            <code class="badge-code">planner</code>
+            <span class="badge-desc">Breaks your goal into the task graph; redraws it when something fails</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">researcher</code>
+            <span class="badge-desc">Searches the web and fetches pages — the only skill allowed those tools</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">browser</code>
+            <span class="badge-desc">Drives a real web browser through a four-layer cascade (next module!)</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">retriever</code>
+            <span class="badge-desc">Searches the agent&rsquo;s own indexed knowledge before going to the web</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">distiller</code>
+            <span class="badge-desc">Extracts structured facts from raw text — always followed by a Critic check</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">summariser</code>
+            <span class="badge-desc">Condenses long content into short form</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">critic</code>
+            <span class="badge-desc">Judges another node&rsquo;s output: pass or fail, with rationale</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">coder</code>
+            <span class="badge-desc">Writes Python code — automatically followed by the sandbox runner</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">sandbox_executor</code>
+            <span class="badge-desc">Runs the Coder&rsquo;s code in a <span class="term" data-definition="A sandbox is a sealed play area for running untrusted code — whatever happens inside can't damage the rest of the system, like a padded test room.">sandbox</span> and reports what happened</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">formatter</code>
+            <span class="badge-desc">Writes the final answer the user reads — the conventional last node</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: How the binder is read -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The engine reads the binder once</h2>
+        <p>At startup, the registry loads every card. This is the entire &ldquo;hiring system&rdquo;:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/skills.py</span>
+            <pre><code>
+<span class="code-line"><span class="code-keyword">class</span> <span class="code-function">SkillRegistry</span>:</span>
+<span class="code-line">    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):</span>
+<span class="code-line">        cfg = yaml.safe_load(AGENT_CONFIG_PATH.read_text(encoding=<span class="code-string">"utf-8"</span>))</span>
+<span class="code-line">        self._skills: <span class="code-function">dict</span>[<span class="code-function">str</span>, Skill] = {n: <span class="code-function">Skill</span>(n, c) <span class="code-keyword">for</span> n, c <span class="code-keyword">in</span> cfg.items()}</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">The registry is the office&rsquo;s staffing desk.</p>
+              <p class="tl">When the office opens for the day...</p>
+              <p class="tl">...it reads the whole binder file from disk...</p>
+              <p class="tl">...and turns every page into a ready-to-hire worker, looked up by name.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>Three optional fields on a job card quietly drive the orchestrator behaviours you met in Module 2:</p>
+
+        <div class="badge-list stagger-children">
+          <div class="badge-item animate-in">
+            <code class="badge-code">tools_allowed</code>
+            <span class="badge-desc">Which equipment this worker may use (web search, page fetch, knowledge search) — empty means words only</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">internal_successors</code>
+            <span class="badge-desc">Who is ALWAYS hired right after this worker finishes (Coder &rarr; sandbox runner)</span>
+          </div>
+          <div class="badge-item animate-in">
+            <code class="badge-code">critic: true</code>
+            <span class="badge-desc">Every hand-off from this worker gets a quality inspector spliced in first (Distiller)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Where you plug in -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Where you plug in — and what you never touch</h2>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128268;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Extending = adding pages, never rewiring</strong>
+            <p>To add a brand-new capability: write one prompt file in <code>code/prompts/</code> and one entry in <code>code/agent_config.yaml</code>. The Planner learns it exists from its own prompt, and the orchestrator can run it immediately. That&rsquo;s the whole procedure.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-warning animate-in">
+          <div class="callout-icon">&#9940;</div>
+          <div class="callout-content">
+            <strong class="callout-title">The orchestrator is off-limits</strong>
+            <p>This project has a standing rule: new features plug in through the catalogue; <code>code/flow.py</code> stays unmodified. If a change you&rsquo;re planning requires editing the engine, that&rsquo;s the signal to redesign it as a skill instead. This keeps one battle-tested engine running many evolving skills.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">This pattern has a name</strong>
+            <p>Behaviour defined in data files instead of code is called <span class="term" data-definition="Configuration-driven (or data-driven) design means a program's behaviour is described in editable data files (like YAML) rather than hard-coded — so changing behaviour doesn't require changing or recompiling code.">configuration-driven design</span>. When you ask an AI assistant to &ldquo;make the new behaviour config-driven,&rdquo; this is exactly what you&rsquo;re asking for.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">You&rsquo;re the staffing manager now</h2>
+
+        <div class="quiz-container" id="quiz-module3">
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly — one new prompt file plus one new yaml entry. The engine never changes; that's the whole design philosophy of the catalogue."
+               data-explanation-wrong="Remember the standing rule: capabilities plug in through the binder (yaml + prompt), and the engine in flow.py stays untouched.">
+            <h3 class="quiz-question">You want the agent to gain a &ldquo;translator&rdquo; skill that renders the final answer in French. What do you change?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Write a Translator class in Python and register it inside flow.py</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Add a prompts/translator.md file and a translator: entry in agent_config.yaml — nothing else</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Fork the orchestrator so the French pipeline has its own engine</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Right — temperature lives on the job card. Dialing the Researcher from 0.7 toward 0.2 makes it more predictable, and it's a one-line yaml edit."
+               data-explanation-wrong="Creative freedom is a per-skill knob on its yaml entry — the same place the Critic is pinned to 0.0. No code edit needed.">
+            <h3 class="quiz-question">The Researcher&rsquo;s write-ups feel erratic — different phrasing and focus on every run. Where would you make it more consistent?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Lower its temperature value in agent_config.yaml</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Edit skills.py to add a consistency check after every researcher call</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Run the Researcher three times and keep the most common answer</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Yes — tools are granted per skill via tools_allowed. A skill with an empty list is words-only; it physically cannot reach the web no matter what its prompt says."
+               data-explanation-wrong="Equipment is listed on each job card. Check which yaml field names the tools a skill may call.">
+            <h3 class="quiz-question">Your new skill needs to look things up on the web, but every attempt fails. Its yaml entry has <code>tools_allowed: []</code>. What&rsquo;s going on?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The web search service is down — wait and retry</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The prompt file forgot to mention searching — rewrite the briefing</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The skill was never granted any tools — add web_search to its tools_allowed list</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>

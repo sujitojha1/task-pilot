@@ -1,0 +1,248 @@
+<section class="module" id="module-1" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">From Idea to Repo</h1>
+      <p class="module-subtitle">You hand it one sentence. It hands you back a GitHub project with a repo, formal requirements, issues, and milestones — with receipts for everything.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- SCREEN 1: What the app is -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">One sentence in, a whole project out</h2>
+        <p>
+          <strong>repo-genesis</strong> is an
+          <span class="term" data-definition="An agent is a program that takes a goal written in plain language, figures out the steps to reach it, and carries them out for you — instead of you doing each step by hand.">agent</span>
+          you run from the
+          <span class="term" data-definition="The command line (or CLI) is the text window where you type commands instead of clicking buttons. When talking to an AI assistant you would say: 'run this from the command line.'">command line</span>.
+          You give it a raw idea, and it bootstraps a complete
+          <span class="term" data-definition="A repository (repo for short) is a project folder hosted on a site like GitHub — it holds the code, its full history, and the project's to-do lists.">GitHub repository</span>
+          around it: researched, specified, and broken into tracked work items.
+        </p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">YOU TYPE</span>
+            <pre><code>
+<span class="code-line">cd code</span>
+<span class="code-line">uv run python flow.py <span class="code-string">"When was Claude Shannon born and what did he contribute to information theory?"</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Go into the folder where the agent lives...</p>
+              <p class="tl">...and start it with a goal written exactly the way you would say it to a person. No forms, no special syntax — the sentence IS the input.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>
+          Think of it as a <strong>city planning office</strong>. You walk in with a rough sketch of a building. The office checks your permit to build (are you logged in?), surveys comparable buildings nearby, drafts formal blueprints, and issues numbered permits for each piece of work — and every permit cites the blueprint line that justifies it.
+        </p>
+      </section>
+
+      <!-- SCREEN 2: The eight-step run -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The eight steps of a run</h2>
+        <p>Every run walks the same arc — from checking your identity to publishing the plan and replaying what happened:</p>
+
+        <div class="step-cards stagger-children">
+          <div class="step-card animate-in">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Verify</strong>
+              <p>Confirm you are logged into GitHub. If not, stop cleanly — never act half-authenticated.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Bootstrap</strong>
+              <p>Create the repository with a license and a README holding the initial idea.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Research</strong>
+              <p>Search GitHub for 3–5 similar projects and read each one's README on the live page.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>Compare &amp; refine</strong>
+              <p>Build a comparison table of those projects and sharpen the idea against the evidence.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">5</div>
+            <div class="step-body">
+              <strong>Specify</strong>
+              <p>Write formal requirements, each with a stable ID like REQ-001 that can be cited later.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">6</div>
+            <div class="step-body">
+              <strong>Publish</strong>
+              <p>Open one GitHub issue per piece of work, each traced to its requirement, grouped into milestones.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">7</div>
+            <div class="step-body">
+              <strong>Review</strong>
+              <p>A QA critic checks the chain: every requirement has an issue, every issue has a milestone.</p>
+            </div>
+          </div>
+          <div class="step-card animate-in">
+            <div class="step-num">8</div>
+            <div class="step-body">
+              <strong>Replay</strong>
+              <p>Emit a step-by-step record of everything it did, every page it visited, and what it cost.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Traceability is the whole point</strong>
+            <p>Every issue cites a requirement; every requirement cites the refined idea; the refined idea cites real projects it was compared against. Engineers call this a <span class="term" data-definition="A traceability chain links every piece of work back to the reason it exists — like a permit citing the blueprint line that requires it. If someone asks 'why are we building this?', the chain answers.">traceability chain</span> — it means no work item exists without a reason on record.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: The two halves -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Two machines under the hood</h2>
+        <p>The codebase splits into two independent programs that talk over the network:</p>
+
+        <div class="icon-rows stagger-children">
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-1)">&#129504;</div>
+            <div>
+              <strong>The agent (<code>code/</code>)</strong>
+              <p>Plans the work, runs the skills, drives the browser, and remembers what it learned. This is the brain.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-2)">&#128682;</div>
+            <div>
+              <strong>The gateway (<code>gateway/</code>)</strong>
+              <p>One front door for every <span class="term" data-definition="An LLM (large language model) is the AI text engine — the thing that actually reads a prompt and writes an answer. ChatGPT and Gemini are LLMs.">LLM</span> call. It picks a provider, respects rate limits, and writes every call into a cost ledger.</p>
+            </div>
+          </div>
+          <div class="icon-row animate-in">
+            <div class="icon-circle" style="background: var(--color-actor-4)">&#128230;</div>
+            <div>
+              <strong>The paper trail (<code>code/state/sessions/</code>)</strong>
+              <p>Every run leaves artifacts on disk: the plan graph, each step's exact prompt and result, and browser screenshots.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>And here is the very first thing the agent does with your sentence — it writes it down, then schedules exactly one worker, the Planner:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE — code/flow.py</span>
+            <pre><code>
+<span class="code-line">store.write_query(query)</span>
+<span class="code-line">graph = <span class="code-function">Graph</span>()</span>
+<span class="code-line">graph.add_node(<span class="code-string">"planner"</span>, inputs=[<span class="code-string">"USER_QUERY"</span>])</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Save your question to disk first, so the run can be resumed or replayed later.</p>
+              <p class="tl">Start a brand-new, empty plan.</p>
+              <p class="tl">Add one single task to it: hand the user's question to the Planner. Everything else that happens grows from this seed.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: Quiz -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check your bearings</h2>
+
+        <div class="quiz-container" id="quiz-module1">
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly. The Verify step exists precisely so the agent never acts half-authenticated — it stops and reports cleanly before touching anything."
+               data-explanation-wrong="Not quite. Look back at step 1 of the run — the agent checks identity before it creates or changes anything at all.">
+            <h3 class="quiz-question">You start a run but forgot to log into GitHub. What happens?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It creates the repo anonymously and asks you to claim it later</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It stops at the very first step and reports the problem without doing anything</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It does the research first and only fails when it tries to publish issues</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right — the comparison table of similar real projects is the evidence the refined idea rests on. The agent researches before it specifies, so nothing is invented blind."
+               data-explanation-wrong="Think about steps 3 and 4: before writing any requirements, the agent goes out and reads similar projects so the plan rests on evidence, not guesswork.">
+            <h3 class="quiz-question">A colleague asks: &ldquo;So it just asks an AI to dream up some issues?&rdquo; What is the most accurate correction?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No — a human reviews and rewrites every issue before publishing</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No — the issues are copied from a fixed template that never changes</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No — it first researches 3–5 similar real projects and refines the idea against that evidence, and every issue traces to a formal requirement</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Yes. The agent (code/) is the brain that plans and acts; the gateway (gateway/) is the front door that every LLM call passes through, where providers, limits, and costs are managed."
+               data-explanation-wrong="Look back at the two-machines screen: one half plans and acts, the other half handles every single AI call on its behalf.">
+            <h3 class="quiz-question">The bill for AI usage seems high and you want to see which step is spending the most. Which half of the system would you look at?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The gateway — every LLM call goes through it and lands in its cost ledger</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The agent — it keeps a running total in its plan graph</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>GitHub — the costs are attached to each issue it creates</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
