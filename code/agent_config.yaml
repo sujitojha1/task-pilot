@@ -99,3 +99,10 @@ browser:
     chosen layer surfaced as output.path. Use when Researcher's
     fetch_url is insufficient: JavaScript-rendered content, interactive
     widgets, multi-page workflows.
+
+github_auth:
+  prompt: prompts/github_auth.md
+  temperature: 0.0
+  max_tokens: 400
+  description: Verifies that the persistent browser profile is logged into GitHub. One navigation, read-only, no side effects.
+

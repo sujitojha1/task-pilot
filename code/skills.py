@@ -316,6 +316,19 @@ async def run_skill(skill: Skill, node_id: str, graph_nodes,
             result.elapsed_s = time.time() - started
         return result, rendered
 
+    if skill.name == "github_auth":
+        from github_auth import GitHubAuthSkill
+        node_meta = graph_nodes[node_id].get("metadata") or {}
+        result = await GitHubAuthSkill().run(NodeSpec(
+            skill="github_auth",
+            inputs=graph_nodes[node_id]["inputs"],
+            metadata=node_meta,
+        ))
+        if not result.elapsed_s:
+            result.elapsed_s = time.time() - started
+        return result, rendered
+
+
     tools = tool_payload(skill.tools_allowed)
     if tools:
         # Multi-turn tool-use loop. mcp_runner opens one MCP stdio session
