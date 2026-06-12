@@ -106,3 +106,9 @@ github_auth:
   max_tokens: 400
   description: Verifies that the persistent browser profile is logged into GitHub. One navigation, read-only, no side effects.
 
+specifier:
+  prompt: prompts/specifier.md
+  temperature: 0.2
+  max_tokens: 2500
+  description: Generates requirements.md in ISO/IEC/IEEE 29148:2018 structure using EARS patterns.
+
