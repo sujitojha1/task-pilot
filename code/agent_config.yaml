@@ -112,3 +112,9 @@ specifier:
   max_tokens: 2500
   description: Generates requirements.md in ISO/IEC/IEEE 29148:2018 structure using EARS patterns.
 
+publisher:
+  prompt: prompts/publisher.md
+  temperature: 0.2
+  max_tokens: 2500
+  description: Reads requirements.md and generates browser successors to create milestones and issues on GitHub.
+
