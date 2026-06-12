@@ -118,6 +118,7 @@ ErrorCode = Literal[
     "interaction_failed",    # could not complete the goal within turn cap
     "timeout",               # wall-clock cap hit
     "vlm_unavailable",       # all vision providers refused or 503'd
+    "github_login_required", # persistent browser profile is not logged into GitHub
 ]
 
 
