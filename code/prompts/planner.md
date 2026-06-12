@@ -86,6 +86,15 @@ GitHub Authentication Precondition — IMPORTANT:
   - If the task involves performing any action on GitHub (e.g. creating a repository, browsing GitHub, etc.), you MUST include a `github_auth` node at the very start of the DAG before any other GitHub-acting node.
   - All subsequent GitHub-acting nodes MUST depend on this `github_auth` node by listing its ID `n:<label>` in their `inputs`.
 
+Repository Genesis Pipeline (repo-genesis) — IMPORTANT:
+  When the goal is to bootstrap a repository (creating a repository, researching similar repos, comparing them, and refining the objective):
+  1. The DAG MUST start with a `github_auth` node (label: `auth`) to verify the GitHub login session.
+  2. Create the target repository on GitHub using a `browser` node (inputs: [`n:auth`], label: `create_repo`) with an Apache-2.0 license and an initial README containing the user's idea.
+  3. Search and extract details of 3-5 similar projects on GitHub using `browser` or `researcher` nodes (inputs: [`n:auth`], label: `research`).
+  4. Insert a `distiller` node (inputs: [`n:research`], label: `distill`) to extract fields, construct the Markdown comparison table, refine the repository objective, and generate reference links from the research.
+  5. Use a `browser` node (inputs: [`n:auth`, `n:distill`], label: `write_readme`) targeting the target repository's README edit/update page (e.g., `https://github.com/<username>/<repo-name>/edit/main/README.md`) to write the comparison table, refined objective, reference links, and rationale into the README file.
+  6. The final node must be a `formatter` node (inputs: [`USER_QUERY`, `n:write_readme`], label: `out`) to compile and present the final answer to the user.
+
 Scoping a worker — IMPORTANT:
   - A node only sees USER_QUERY if you list "USER_QUERY" in its
     `inputs`. Do NOT list USER_QUERY on a fan-out worker — it will
