@@ -238,8 +238,40 @@ class BaseDriver:
         """Returns (parsed_dict, GatewayResult). Subclass implements."""
         raise NotImplementedError
 
+    async def _enumerate_with_retry(self, attempts: int = 3) -> PageSnapshot:
+        """Enumerate interactives, retrying through the navigation race.
+
+        `enumerate_interactives` runs a `page.evaluate` pass; when an action
+        from the previous turn triggered a navigation that is still in flight
+        (common right after a form submit on sites like GitHub), Playwright
+        aborts the evaluate with "Execution context was destroyed, most likely
+        because of a navigation". That is transient — it clears once the new
+        document commits. Before this retry it killed the whole browse on its
+        first turn (the 0.0s Browser failures in session logs), which then
+        cost a full Planner re-plan upstream. Waiting for the load state and
+        retrying recovers the turn locally instead.
+        """
+        last_exc: Exception | None = None
+        for i in range(attempts):
+            try:
+                return await enumerate_interactives(self.page)
+            except Exception as e:                          # noqa: BLE001
+                msg = str(e).lower()
+                if ("execution context was destroyed" not in msg
+                        and "most likely because of a navigation" not in msg):
+                    raise  # a real DOM/JS fault, not the navigation race
+                last_exc = e
+                try:
+                    await self.page.wait_for_load_state(
+                        "domcontentloaded", timeout=5000)
+                except Exception:                          # noqa: BLE001
+                    pass
+                await asyncio.sleep(0.4 * (i + 1))
+        assert last_exc is not None
+        raise last_exc
+
     async def step(self, turn: int) -> tuple[bool, bool, str]:
-        snap = await enumerate_interactives(self.page)
+        snap = await self._enumerate_with_retry()
         parsed, result = await self._decide(snap, turn)
 
         if not parsed:

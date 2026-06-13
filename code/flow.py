@@ -25,11 +25,18 @@ import networkx as nx
 import memory as memory_svc
 from gateway import ensure_gateway
 from persistence import SessionStore
-from recovery import handle_critic_verdict, plan_recovery
+from recovery import handle_critic_verdict, plan_recovery, recovery_root_for
 from schemas import AgentResult, NodeState
 from skills import SkillRegistry, run_skill
 
 MAX_NODES = 60  # hard cap so a Planner loop cannot grow forever
+# Per-branch cap on node-failure recovery, mirroring the critic-fail cap in
+# recovery.handle_critic_verdict. Without it a node that fails the same way on
+# every attempt (a Browser node hitting the same navigation race or step cap)
+# re-plans on each failure, and each recovery Planner re-emits the same failing
+# work — the graph marches to MAX_NODES achieving nothing. One recovery per
+# branch, then the branch is skipped and the final answer reflects the gap.
+MAX_RECOVERIES_PER_BRANCH = 1
 
 
 # ── Graph ────────────────────────────────────────────────────────────────────
@@ -179,6 +186,18 @@ class Graph:
                 self.g.add_edge(critic_nid, child_nid)
                 added.append(critic_nid)
 
+        # Recovery-lineage propagation: when THIS node is itself part of a
+        # recovery chain (the recovery Planner carries `recovery_root`), stamp
+        # every node it splices in with the same root. The per-branch recovery
+        # cap in Executor.run charges a re-emitted node's later failure to this
+        # root, so a recovery that just re-emits the failing work cannot evade
+        # the cap by minting fresh node ids. (See MAX_RECOVERIES_PER_BRANCH.)
+        src_root = (self.g.nodes[src_nid].get("metadata") or {}).get("recovery_root")
+        if src_root:
+            for nid in added:
+                md = self.g.nodes[nid].setdefault("metadata", {})
+                md.setdefault("recovery_root", src_root)
+
         return added
 
 
@@ -235,6 +254,13 @@ class Executor:
         # no flag. Track every second-or-later critic-fail here so the
         # final log can surface it.
         critic_fail_cap_hit: list[str] = []
+        # Node-failure recovery accounting (mirrors recovered_branches above).
+        # `recovery_counts` is keyed by recovery root (see recovery_root_for);
+        # `recovery_cap_hit` records branches whose second-or-later failure was
+        # skipped so the closing log can surface the missing data — exactly as
+        # critic_fail_cap_hit does for the critic path.
+        recovery_counts: dict[str, int] = {}
+        recovery_cap_hit: list[str] = []
 
         while True:
             ready = graph.ready_nodes()
@@ -291,7 +317,21 @@ class Executor:
                         print(f"  ↪ {nid} failed ({decision.reason}, "
                               f"skill={failed_skill}): {decision.note}")
                         continue
-                    # action == "replan"
+                    # action == "replan" — but cap re-planning per branch so a
+                    # node that fails the same way every attempt cannot grow the
+                    # graph forever. The root keys the whole recovery lineage,
+                    # so a recovery that re-emits the failing work still counts
+                    # against the same budget (see recovery_root_for + the
+                    # recovery_root propagation in Graph.extend_from).
+                    root = recovery_root_for(
+                        graph.g.nodes[nid].get("metadata"), nid)
+                    if recovery_counts.get(root, 0) >= MAX_RECOVERIES_PER_BRANCH:
+                        recovery_cap_hit.append(nid)
+                        print(f"  ↪ {nid} ({failed_skill}) failed again on "
+                              f"recovery branch {root}; CAP HIT — branch "
+                              f"skipped, final will reflect missing data")
+                        continue
+                    recovery_counts[root] = recovery_counts.get(root, 0) + 1
                     # Recovery Planner amnesia fix: pass the ids of nodes that
                     # have already completed successfully so the recovery
                     # Planner can wire them by id in its successor plan
@@ -313,7 +353,8 @@ class Executor:
                         metadata={"failure_report": decision.failure_report,
                                   "recovers": nid,
                                   "recovery_reason": decision.reason,
-                                  "prior_complete": prior_complete},
+                                  "prior_complete": prior_complete,
+                                  "recovery_root": root},
                     )
                     print(f"  ↪ recovery ({decision.reason}): planner node "
                           f"{rec_nid} queued for {nid}"
@@ -339,6 +380,12 @@ class Executor:
                   f"The final answer reflects missing data from these "
                   f"branches because the Critic rejected the re-planned "
                   f"output too.")
+        if recovery_cap_hit:
+            print(f"\n[flow] WARNING: recovery cap hit on "
+                  f"{len(recovery_cap_hit)} branch(es): "
+                  f"{', '.join(recovery_cap_hit)}. Each failed again after "
+                  f"its one allowed recovery; the branch was skipped and the "
+                  f"final answer reflects missing data from it.")
         print(f"\n{'═' * 78}\nFINAL: {(formatter_answer or '')[:600]}\n{'═' * 78}\n")
         return formatter_answer or ""
 

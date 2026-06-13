@@ -43,6 +43,22 @@ def classify_failure(error_text: str) -> RecoveryReason:
     return "upstream_failure"
 
 
+def recovery_root_for(node_metadata: dict | None, failed_node_id: str) -> str:
+    """The branch identity a node-failure recovery is charged against.
+
+    Mirrors the per-target accounting the critic-fail path does with
+    `recovered_branches`. A node that was itself spliced in by an earlier
+    recovery carries `recovery_root` in its metadata (stamped by
+    `Graph.extend_from`); charge its failure to that same root so the
+    per-branch cap counts the whole recovery LINEAGE rather than each freshly
+    re-emitted node id separately. Without this, a recovery that simply
+    re-emits the failing work would escape the cap by minting a new id every
+    time. A node failing for the first time is its own root.
+    """
+    md = node_metadata or {}
+    return md.get("recovery_root") or failed_node_id
+
+
 @dataclass(frozen=True)
 class RecoveryDecision:
     action: RecoveryAction
