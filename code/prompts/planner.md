@@ -164,8 +164,19 @@ on the same inputs. In particular:
     the formatter.
   - If FAILURE mentions `github_login_required` (meaning the persistent browser profile
     is not logged into GitHub), do NOT retry the check or execute any other steps.
-    Halt the run immediately by emitting ONLY a single `formatter` node that relays the
-    remediation steps verbatim to the user.
+    Halt the run immediately by emitting ONLY a single `formatter` node.
+    CRITICAL: the formatter does NOT see this FAILURE block — it only sees what you
+    put in its inputs/metadata. The remediation steps live ONLY here, in your FAILURE
+    block. So you MUST copy them into the formatter's `metadata.question` VERBATIM
+    (the text after "Remediation:", including every "| "-separated step). A formatter
+    wired to `["USER_QUERY"]` with no remediation will hallucinate an answer about the
+    user's idea instead of relaying the login instructions — that is a bug, not the
+    goal. Emit exactly:
+    {"rationale":"GitHub login required; halting and relaying the remediation steps.",
+     "nodes":[
+       {"skill":"formatter","inputs":["USER_QUERY"],
+        "metadata":{"label":"out",
+          "question":"The run was halted because the persistent browser profile is not logged into GitHub. No GitHub action was taken. Relay these remediation steps to the user verbatim: <paste the steps from the FAILURE block's Remediation: section here>"}}]}
 
 Recovery — when FAILURE is present AND your INPUTS include `n:*`
 entries beyond USER_QUERY: those `n:*` entries are nodes from THIS
