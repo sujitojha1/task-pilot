@@ -43,7 +43,9 @@ repo-genesis runs as a skill-catalogue entry on the Session 8/9 agent runtime (P
 | ID | Requirement (EARS) | Verify |
 |---|---|---|
 | REQ-BOOT-001 | WHEN authentication is verified, the system shall create the target repository with an Apache-2.0 license and a README.md containing the user's initial idea. | D |
-| REQ-BOOT-002 | IF a repository with the target name already exists in the user's account, THEN the system shall halt and report without modifying the existing repository. | T |
+| REQ-BOOT-002 | IF a repository with the target name already exists in the user's account, THEN the system shall halt and report without modifying the existing repository. | D |
+| REQ-BOOT-003 | WHEN authentication is verified, the system shall derive the target repository name from the user's idea as a GitHub-valid slug — lowercase ASCII alphanumerics separated by single hyphens, no leading, trailing, or consecutive hyphens, at most 100 characters — and shall use that exact name in every subsequent GitHub action: repository creation, the README and `requirements.md` writes, and all issue and milestone URLs. | I |
+| REQ-BOOT-004 | IF the user's idea yields no valid slug characters, THEN the system shall halt and report rather than create a repository under a generated placeholder name. | D |
 
 ### 2.3 Similar-repo research (RES)
 
@@ -51,8 +53,8 @@ repo-genesis runs as a skill-catalogue entry on the Session 8/9 agent runtime (P
 |---|---|---|
 | REQ-RES-001 | WHEN the target repository exists, the system shall identify 3 to 5 similar repositories via GitHub search. | D |
 | REQ-RES-002 | The system shall perform at least three visible browser actions during research (e.g., search, sort, filter, open repository pages); passive scraping of search snippets shall not substitute for these actions. | D |
-| REQ-RES-003 | WHEN a candidate repository is opened, the system shall read its README and extract purpose, key features, license, and activity signals. | T |
-| REQ-RES-004 | IF fewer than three similar repositories are found, THEN the system shall broaden the search once, proceed with the repositories found, and record the deviation in the replay. | T |
+| REQ-RES-003 | WHEN a candidate repository is opened, the system shall read its README and extract purpose, key features, license, and activity signals. | D |
+| REQ-RES-004 | IF fewer than three similar repositories are found, THEN the system shall broaden the search once, proceed with the repositories found, and record the deviation in the replay. | D |
 
 ### 2.4 Comparison and idea refinement (CMP)
 
@@ -81,8 +83,8 @@ repo-genesis runs as a skill-catalogue entry on the Session 8/9 agent runtime (P
 
 | ID | Requirement (EARS) | Verify |
 |---|---|---|
-| REQ-REV-001 | WHEN publishing completes, the system shall review `requirements.md` and verify the traceability chain: every requirement maps to at least one issue and every issue to a milestone. | T |
-| REQ-REV-002 | IF the review finds an untraced requirement or an orphaned issue, THEN the system shall repair the gap once and report any remaining gaps in the replay. | T |
+| REQ-REV-001 | WHEN publishing completes, the system shall review `requirements.md` and verify the traceability chain: every requirement maps to at least one issue and every issue to a milestone. | D |
+| REQ-REV-002 | IF the review finds an untraced requirement or an orphaned issue, THEN the system shall repair the gap once and report any remaining gaps in the replay. | D |
 
 ### 2.8 Browser cascade (BRW)
 
@@ -115,6 +117,8 @@ repo-genesis runs as a skill-catalogue entry on the Session 8/9 agent runtime (P
 ## 4. Verification
 
 Each requirement carries a verification method: **I** (inspect the produced artifact), **D** (demonstrate in the recorded run / YouTube demo), **T** (automated or scripted test). The assignment demo doubles as the demonstration evidence for all D-tagged requirements.
+
+Automated tests today cover only the infrastructure: the authentication precondition (REQ-AUTH-002, `tests/test_github_auth.py`), the browser cascade and its `gateway_blocked` recovery (REQ-BRW-001, REQ-BRW-003, `tests/test_recovery*.py`, `tests/test_natural_vision_search.py`, `code/VALIDATION.md`), and the cost ledger (REQ-REP-002, `gateway/tests/`). The GitHub-acting pipeline requirements (BOOT/RES/CMP/SPEC/PUB/REV) are tagged **D**: they are verified by the recorded end-to-end run, not by unit tests — consistent with their browser-runtime nature.
 
 ## 5. Traceability to assignment deliverables
 

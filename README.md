@@ -105,19 +105,29 @@ This is **developer documentation for this repository only**, not a feature of t
 
 ## Roadmap
 
-- [ ] GitHub login verification (persistent profile, clean abort when absent)
-- [ ] Repo bootstrap: Apache-2.0 license + initial README
-- [ ] Similar-repo research with structured comparison table and reference links
+**Infrastructure — built and validated:**
+
+- [x] GitHub login verification — persistent browser profile, clean abort when absent (`github_auth.py`, `tests/test_github_auth.py`)
+- [x] Browser cascade — extract → deterministic → a11y → vision, with `gateway_blocked` recovery (see `code/VALIDATION.md`)
+- [x] Replay viewer + cost accounting — DAG, per-step layer choices, screenshots/page-state logs, gateway cost ledger (`replay.py`)
+
+**repo-genesis pipeline — prompt-wired into the Planner, not yet demonstrated end-to-end against a live GitHub repo:**
+
+- [ ] Repo bootstrap: Apache-2.0 license + initial README — slug derivation and duplicate-name guard now specified (REQ-BOOT-002/003/004, `planner.md`); still needs an end-to-end run to prove them
+- [ ] Similar-repo research against GitHub search with structured comparison table and reference links
 - [ ] Idea refinement from comparison evidence
-- [ ] `requirements.md` generation (IEEE 29148:2018 + EARS, stable IDs)
-- [ ] Issue creation traced to requirements; milestone grouping
-- [ ] Traceability review pass (QA/Critic)
-- [ ] Replay viewer (DAG, layer choices, actions, screenshots, data, costs)
+- [ ] `requirements.md` generation (IEEE 29148:2018 + EARS, stable IDs) — `specifier` skill exists, not yet run end-to-end
+- [ ] Issue creation traced to requirements; milestone grouping — `publisher` skill exists, browser form-fill unproven
+- [ ] Traceability review pass (QA/Critic) — generic critic only; the dedicated traceability-repair pass (REQ-REV-002) is not yet built
 
 ---
 
 ## Status
 
-Early stage. The architecture is defined; implementation is in progress.
+The shared agent infrastructure is built and validated: the GitHub login precondition, the four-layer browser cascade, recovery/re-planning, the gateway with its cost ledger, and the replay viewer all work and are exercised by tests and recorded runs (`code/VALIDATION.md`, `docs/run-report-laptops-under-80k.md`).
+
+The repo-genesis vertical itself — bootstrap → research → compare → specify → publish → review — is defined as skill prompts and wired into the Planner, but has not yet been demonstrated as a complete run against a live GitHub repository. The only recorded end-to-end run to date is the generic browser-comparison task (laptops under ₹80,000), which exercises the cascade but not the GitHub-acting pipeline.
+
+GitHub actions are performed through the persistent browser profile (log in once via `uv run python github_auth.py --login`), **not** an API token — there is no `GITHUB_TOKEN`/REST path in the design.
 
 Built for the Session 9 assignment — see [docs/assignment.md](docs/assignment.md) for the full spec (deliverables, constraints, submission checklist).

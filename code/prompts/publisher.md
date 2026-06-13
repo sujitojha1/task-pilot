@@ -43,5 +43,6 @@ Output schema (JSON, no prose, no markdown fences):
   }
 
 Notes:
-  - Resolve the `<username>` and `<repo-name>` placeholders in the URLs using the repository path/information from the inputs or original user query.
+  - The target repository already exists (created upstream); do NOT invent or re-derive a new name. Take `<repo-name>` from the established repository slug in your INPUTS (the `create_repo` node's goal, or the refined objective). Take `<username>` from the GITHUB IDENTITY block if present, otherwise from the `n:auth` node's reported logged-in user. Every milestone and issue URL MUST target that exact `<username>/<repo-name>`.
+  - Only if the slug is genuinely absent from your inputs, derive it from the user's idea with the same rule the bootstrap used: lowercase, ASCII alphanumerics, each run of spaces/punctuation collapsed to a single hyphen, no leading/trailing/consecutive hyphens, ≤ ~50 chars.
   - Ensure the output strictly conforms to the JSON schema.

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import time
 from pathlib import Path
 
@@ -31,6 +32,20 @@ from schemas import AgentResult, NodeSpec
 
 ROOT = Path(__file__).parent
 AGENT_CONFIG_PATH = ROOT / "agent_config.yaml"
+
+# Load .env into this process so prompt context (e.g. GITHUB_USERNAME, surfaced
+# as the GITHUB IDENTITY block in render_prompt) is available to the
+# orchestrator. The repo-root .env holds the GitHub identity; code/.env holds
+# the documented agent-side keys (also loaded by mcp_server.py in its own
+# subprocess). load_dotenv does not override variables already set in the
+# process or by an earlier file, so the repo-root .env wins on overlap.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(ROOT.parent / ".env")  # repo-root .env (GitHub identity / tokens)
+    load_dotenv(ROOT / ".env")          # code/.env (agent-side keys)
+except Exception:  # noqa: BLE001 — prompt context is best-effort, never fatal
+    pass
 
 
 # ── catalogue ────────────────────────────────────────────────────────────────
@@ -175,6 +190,16 @@ def render_prompt(skill: Skill, query: str, resolved: list[dict],
     hits_block = _format_memory_hits(memory_hits or [])
     if hits_block:
         parts += ["", f"MEMORY HITS ({len(memory_hits)} from FAISS):", hits_block]
+    # GitHub identity — when GITHUB_USERNAME is configured, surface it so any
+    # GitHub-acting skill (Planner, Publisher, Browser) can bake the real owner
+    # into literal `<username>/<repo>` URLs at plan time instead of leaving a
+    # placeholder. Harmless to non-GitHub skills, which ignore it.
+    gh_user = os.environ.get("GITHUB_USERNAME", "").strip()
+    if gh_user:
+        parts += ["", (f"GITHUB IDENTITY: the authenticated GitHub account is "
+                       f"`{gh_user}`. Use this exact username wherever a GitHub "
+                       f"URL or path needs `<username>` "
+                       f"(e.g. https://github.com/{gh_user}/<repo-name>).")]
     parts += ["", "INPUTS:", json.dumps(resolved, indent=2, default=str)[:20_000]]
     return "\n".join(parts)
 
